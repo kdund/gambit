@@ -76,13 +76,17 @@ void AIS(Gambit::Scanner::like_ptr LogLike,
 {
     int rank = 0;
     int numtasks = 1;
+
 #ifdef WITH_MPI
     MPI_Comm_size(MPI_COMM_WORLD,&numtasks); 
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     if (numtasks > 1)
+    {
         AIS_MPI(LogLike, printer, set_resume_params, ma, proj, din, alim, alimt, rand, N, M, Bs);
-    return;
+        return;
+    }
 #endif
+
     std::vector<std::vector<double>> currentPts(N, std::vector<double>(ma)), nextPts(N, std::vector<double>(ma));
     std::vector<double> weights(N, 0.0);
     std::vector<double> chisq(N);
@@ -92,10 +96,10 @@ void AIS(Gambit::Scanner::like_ptr LogLike,
 
     std::vector<unsigned long long int> ids(N);
     unsigned long long int next_id;
-    
+
     Gambit::Scanner::printer *out_stream = printer.get_stream("txt");
     out_stream->reset();
-    
+
     RandomPlane gDev(proj, ma, din, alim, alimt, rand);
 
     set_resume_params(currentPts, nextPts, chisq, weights, ids, ranks);

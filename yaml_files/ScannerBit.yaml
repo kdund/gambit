@@ -70,8 +70,8 @@ Scanner:
       like: LogLike
       points: 10000
       jumps: 10
-      #chain_number: 20
-      projection_dimension: 4
+      Bs: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+      #projection_dimension: 4
       
     de:
       plugin: Diver
