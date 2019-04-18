@@ -490,6 +490,8 @@ namespace Gambit
                 out_stream->print(info.mult, "mult", info.rank, info.id);
                 out_stream->print(info.chain, "chain", info.rank, info.id);
             }
+            out_stream->flush();
+
             std::cout << "TWalk has finished in process " << rank << "." << std::endl;
 
             return;
