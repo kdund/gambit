@@ -103,20 +103,28 @@ def main(argv):
 
     prior_txt_out = "#ifndef PRIOR_LIST_HPP\n#define PRIOR_LIST_HPP\n\n"
 
-    cmakelist_txt_out = "set( scannerbit_sources\n"
+    cmakelist_txt_out = """
+set( scannerbit_sources
+"""
     for source in sorted(scanbit_srcs):
         cmakelist_txt_out += " "*16 + "src/" + source + "\n"
     for source in sorted(prior_srcs):
         cmakelist_txt_out += " "*16 + "src/" + source.split('/ScannerBit/src/')[1] + "\n"
     cmakelist_txt_out += ")\n\n"
 
-    cmakelist_txt_out += "set( scannerbit_headers\n"
+    cmakelist_txt_out += """
+set( scannerbit_headers
+"""
     for header in sorted(scanbit_hdrs):
         cmakelist_txt_out += " "*16 + "include/gambit/ScannerBit/" + header + "\n"
     for header in sorted(prior_hdrs):
         cmakelist_txt_out += " "*16 + "include/gambit/ScannerBit/" + header.split('/ScannerBit/include/gambit/ScannerBit/')[1] + "\n"
         prior_txt_out += "#include \"" + "gambit/ScannerBit/" + header.split('/ScannerBit/include/gambit/ScannerBit/')[1] + "\"\n"
-    cmakelist_txt_out += ")\n\nadd_gambit_library( ScannerBit OPTION OBJECT SOURCES ${scannerbit_sources} HEADERS ${scannerbit_headers} )\n\n"
+    cmakelist_txt_out += ")\n"
+    cmakelist_txt_out += """
+add_gambit_library( ScannerBit OPTION OBJECT SOURCES ${scannerbit_sources} HEADERS ${scannerbit_headers} )
+
+"""
 
     prior_txt_out += "\n#endif\n"
     ## end adding scannerbit files to CMakeLists.txt ##
@@ -302,16 +310,24 @@ def main(argv):
             # Add entries for this plugin only if there are non-excluded sources found.
             if (cmakelist_txt_out_tmp != ""):
               # First do the sources
-              cmakelist_txt_out = cmakelist_txt_out+"set( " + plug_type[i] + "_plugin_sources_" + directory + "\n" + cmakelist_txt_out_tmp + ")\n\n"
+              cmakelist_txt_out = cmakelist_txt_out + """
+set( {0}_plugin_sources_{1}
+{2}
+)
+""".format(plug_type[i], directory, cmakelist_txt_out_tmp)
               # Now do the headers
-              cmakelist_txt_out += "set( " + plug_type[i] + "_plugin_headers_" + directory + "\n"
+              cmakelist_txt_out += """
+set( {0}_plugin_headers_{1}
+""".format(plug_type[i], directory)
               for header in sorted(headers):
                   cmakelist_txt_out += " "*16 + "include/gambit/ScannerBit/" + header.split('/ScannerBit/include/gambit/ScannerBit/')[1] + "\n"
-              cmakelist_txt_out += ")\n\n"
+              cmakelist_txt_out += ")\n"
             # Otherwise notify that the plugin is ditched.
             else:
               for x in exclude_list:
-                cmakelist_txt_out += "message(\"${BoldCyan} X Excluding " + x + " from ScannerBit configuration.${ColourReset}\")\n\n"
+                cmakelist_txt_out += """
+message(\"${{BoldCyan}} X Excluding {0} from ScannerBit configuration.${ColourReset}\")
+""".format(x)
 
     # Loop over all plugin types
     for config_file, plugin_type in zip(config_files, plug_type):
@@ -609,69 +625,98 @@ endif()
         for directory in sorted(directories):
             library_names.append("lib" + plug_type[i] + "_" + directory + ".so")
 
-            towrite += "#################### lib" + plug_type[i] + "_" + directory + ".so ####################\n\n"
+            towrite += """
+#################### lib{0}_{1}.so ####################
+""".format(plug_type[i], directory)
 
-            towrite += "set (" + plug_type[i] + "_compile_flags_" + directory + " \"${PLUGIN_COMPILE_FLAGS}"
+            towrite += """
+set ({0}_compile_flags_{1} \"${{PLUGIN_COMPILE_FLAGS}}""".format(plug_type[i], directory)
             if plug_type[i] in scanbit_cxx_flags:
                 if directory in scanbit_cxx_flags[plug_type[i]]:
                     towrite += " "
                     towrite += " ".join(scanbit_cxx_flags[plug_type[i]][directory])
-            towrite += "\")\n\n"
+            towrite += "\")\n"
 
             for plug in scanbit_plugins[plug_type[i]][directory]:
                 nothing_excluded = True
                 if plug[3] == "excluded":
                     nothing_excluded = False
-                    towrite += "set (" + plug_type[i] + "_ok_flag_" + directory + " \"    user: " + plug[4] + "\\n\")\n\n"
+                    towrite += """
+set ({0}_ok_flag_{1} \"    user: {2}\\n\")
+""".format(plug_type[i], directory, plug[4])
             if (nothing_excluded):
-                towrite += "set (" + plug_type[i] + "_ok_flag_" + directory + " \"\")\n\n"
+                towrite += """
+set ({0}_ok_flag_{1} \"\")
+""".format(plug_type[i], directory)
 
-            towrite += "set (" + plug_type[i] + "_plugin_libraries_" + directory + "\n"
+            towrite += """
+set ({0}_plugin_libraries_{1}
+""".format(plug_type[i], directory)
             if plug_type[i] in scanbit_libs:
                 if directory in scanbit_libs[plug_type[i]]:
                     towrite += " "*16 + "\"" + scanbit_links[plug_type[i]][directory] + "\"\n"
-            towrite += ")\n\n"
+            towrite += ")\n"
 
-            towrite += "set (" + plug_type[i] + "_plugin_lib_paths_" + directory + "\n"
+            towrite += """
+set ({0}_plugin_lib_paths_{1}
+""".format(plug_type[i], directory)
             if plug_type[i] in scanbit_lib_hints:
                 if directory in scanbit_lib_hints[plug_type[i]]:
                     for lib in scanbit_lib_hints[plug_type[i]][directory]:
                         towrite += " "*16 + lib + "\n"
-            towrite += ")\n\n"
+            towrite += ")\n"
 
-            towrite += "set (" + plug_type[i] + "_plugin_rpath_" + directory + "\n"
+            towrite += """
+set ({0}_plugin_rpath_{1}
+                ${{PROJECT_SOURCE_DIR}}/contrib/yaml-cpp-0.6.2/build
+""".format(plug_type[i], directory)
+
             if plug_type[i] in scanbit_libs:
                 if directory in scanbit_libs[plug_type[i]]:
                     unique_libdirs = set(p for p in scanbit_libs[plug_type[i]][directory])
                     if unique_libdirs:
                         for libdir in unique_libdirs:
                             towrite += " "*16 + libdir +"\n"
-            towrite += ")\n\n"
+            towrite += ")\n"
 
-            towrite += "set (" + plug_type[i] + "_plugin_includes_" + directory + "\n"
-            towrite += " "*16 + "${PLUGIN_INCLUDE_DIRECTORIES}\n"
-            towrite += " "*16 + "${CMAKE_CURRENT_SOURCE_DIR}/include/gambit/ScannerBit/" + plug_type[i] + "s/" + directory + "\n"
+            towrite += """
+set ({0}_plugin_includes_{1}
+                ${{PLUGIN_INCLUDE_DIRECTORIES}}
+                ${{CMAKE_CURRENT_SOURCE_DIR}}/include/gambit/ScannerBit/{0}s/{1}
+""".format(plug_type[i], directory)
+            
             if plug_type[i] in scanbit_incs:
                 if directory in scanbit_incs[plug_type[i]]:
                     for inc in scanbit_incs[plug_type[i]][directory]:
                         towrite += " "*16 + inc + "\n"
-            towrite += ")\n\n"
+            towrite += ")\n"
 
-            towrite += "set (" + plug_type[i] + "_plugin_linked_libs_" + directory + " \"\")\n"
+            towrite += """
+set ({0}_plugin_linked_libs_{1} \"\")
+""".format(plug_type[i], directory)
+
             if plug_type[i] in scanbit_link_libs:
                 if directory in scanbit_link_libs[plug_type[i]]:
                     for lib in scanbit_link_libs[plug_type[i]][directory]:
                         towrite += "set (" + plug_type[i] + "_plugin_linked_libs_" + directory + " \"${" + plug_type[i] + "_plugin_linked_libs_" + directory + "}"
                         towrite += "    " + lib[0] + ": " + lib[1] + "\\n\")\n"
-            towrite += "\n"
-            towrite += "set (" + plug_type[i] + "_plugin_lib_full_paths_" + directory + "\n"
+
+            towrite += """
+set ({0}_plugin_lib_full_paths_{1}
+                #${{PROJECT_SOURCE_DIR}}/contrib/yaml-cpp-0.6.2/build/libyaml-cpp.so
+                ${{PROJECT_SOURCE_DIR}}/contrib/yaml-cpp-0.6.2/libyaml-cpp.a
+""".format(plug_type[i], directory)
+
             if plug_type[i] in scanbit_link_libs:
                 if directory in scanbit_link_libs[plug_type[i]]:
                     for lib in scanbit_link_libs[plug_type[i]][directory]:
                         towrite += " "*16 + lib[1] + "\n"
-            towrite += ")\n\n"
+            towrite += ")\n"
 
-            towrite += "set (" + plug_type[i] + "_plugin_found_incs_" + directory + " \"\")\n"
+            towrite += """
+set ({0}_plugin_found_incs_{1} \"\")
+""".format(plug_type[i], directory)
+
             if plug_type[i] in scanbit_incs:
                 if directory in scanbit_incs[plug_type[i]]:
                     for inc in scanbit_incs[plug_type[i]][directory]:
@@ -683,8 +728,6 @@ endif()
                         towrite += "set (" + plug_type[i] + "_plugin_found_incs_" + directory + " \"${" + plug_type[i] + "_plugin_found_incs_" + directory + "}"
                         towrite += "    \\\"" + inc[0] + "\\\": " + inc[1] + "\\n\")\n"
 
-            towrite += "\n"
-
             if plug_type[i] in scanbit_auto_libs:
                 if directory in scanbit_auto_libs[plug_type[i]]:
                     if plug_type[i] in scanbit_link_libs:
@@ -695,44 +738,35 @@ endif()
                     temp = set(lib for lib in scanbit_auto_libs[plug_type[i]][directory])
                     for lib in temp:
                         if lib == "ROOT":
-                            towrite += "if (" + lib + "_FOUND)\n"
-                            towrite += " "*4 + "foreach (" + lib + "_LIB ${" + lib + "_LIBRARIES})\n"
-                            towrite += " "*8 + "get_filename_component(lib_path ${" + lib + "_LIB} PATH)\n"
-                            towrite += " "*8 + "get_filename_component(lib_name ${" + lib + "_LIB} NAME_WE)\n"
-                            towrite += " "*8 + "string (REGEX REPLACE \"^lib\" \"\" lib_name ${lib_name})\n"
-                            towrite += " "*8 + "set (" + plug_type[i] + "_plugin_libraries_" + directory
-                            towrite += " \"${" + plug_type[i] + "_plugin_libraries_" + directory + "}"
-                            towrite += " -L${lib_path} -l${lib_name}\")\n"
-                            towrite += " "*8 + "set (" + plug_type[i] + "_plugin_lib_full_paths_" + directory
-                            towrite += " ${" + plug_type[i] + "_plugin_lib_full_paths_" + directory + "}"
-                            towrite += " ${" + lib + "_LIBRARIES})\n"
-                            towrite += " "*8 + "set (" + plug_type[i] + "_plugin_linked_libs_" + directory
-                            towrite += " \"${" + plug_type[i] + "_plugin_linked_libs_" + directory +"}    " + lib + ": ${" + lib + "_LIB}\\n\")\n"
-                            towrite += " "*4 + "endforeach()\n"
-                            towrite += " "*4 + "set (" + plug_type[i] + "_plugin_rpath_" + directory
-                            towrite += " \"${" + plug_type[i] + "_plugin_rpath_" + directory + "};${" + lib + "_LIBRARY_DIR}\")\n"
-                            towrite += "endif()\n\n"
+                            towrite += """
+if ({0}_FOUND)
+    foreach ({0}_LIB ${{{0}_LIBRARIES}})
+        get_filename_component(lib_path ${{{0}_LIB}} PATH)
+        get_filename_component(lib_name ${{{0}_LIB}} NAME_WE)\
+        string (REGEX REPLACE \"^lib\" \"\" lib_name ${lib_name})
+        set ({1}_plugin_libraries_{2} \"${{{1}_plugin_libraries_{2}}} -L${{lib_path}} -l${{lib_name}}\")
+        set ({1}_plugin_lib_full_paths_{2} ${{{1}_plugin_lib_full_paths_{2}}} ${{{0}_LIBRARIES}})
+        set ({1}_plugin_linked_libs_{directory \"${{{1}_plugin_linked_libs_{2}}}    {0}: ${{{0}_LIB}}\\n\")
+    endforeach()
+    set ({1}_plugin_rpath_{2} \"${{{1}_plugin_rpath_{2}}};${{{0}_LIBRARY_DIR}}\")
+endif()
+""".format(lib, plug_type[i], directory)
                         else:
-                            lib_name = plug_type[i] + "_" + directory + "_" + lib + "_LIBRARY"
-                            towrite += "find_library( " + lib_name + " " + lib + " HINTS ${" + plug_type[i] + "_plugin_lib_paths_" + directory + "} )\n"
-                            towrite += "if( " + lib_name + " STREQUAL \"" + lib_name + "-NOTFOUND\" )\n"
-                            towrite += "    message(\"-- Did not find "+ plug_type[i] + " library " + lib + " for " + directory + ". Disabling scanners that depend on this.\")\n"
-                            towrite += "else()\n"
-                            towrite += " "*4 + "get_filename_component(lib_path ${" + lib_name + "} PATH)\n"
-                            towrite += " "*4 + "get_filename_component(lib_name ${" + lib_name + "} NAME_WE)\n"
-                            towrite += " "*4 + "string (REGEX REPLACE \"^lib\" \"\" lib_name ${lib_name})\n"
-                            towrite += " "*4 + "set (" + plug_type[i] + "_plugin_libraries_" + directory
-                            towrite += " \"${" + plug_type[i] + "_plugin_libraries_" + directory + "}"
-                            towrite += " -L${lib_path} -l${lib_name}\")\n"
-                            towrite += " "*8 + "set (" + plug_type[i] + "_plugin_lib_full_paths_" + directory
-                            towrite += " ${" + plug_type[i] + "_plugin_lib_full_paths_" + directory + "}"
-                            towrite += " ${" + lib_name + "})\n"
-                            towrite += " "*4 + "set (" + plug_type[i] + "_plugin_rpath_" + directory
-                            towrite += " \"${" + plug_type[i] + "_plugin_rpath_" + directory + "};${lib_path}\")\n"
-                            towrite += " "*4 + "set (" + plug_type[i] + "_plugin_linked_libs_" + directory
-                            towrite += " \"${" + plug_type[i] + "_plugin_linked_libs_" + directory +"}    " + lib + ": ${" + lib_name + "}\\n\")\n"
-                            towrite += "    message(\"-- Found "+ plug_type[i] + " library: ${" + lib_name + "}\")\n"
-                            towrite += "endif()\n\n"
+                            towrite += """
+find_library( {0}_{1}_{2}_LIBRARY {2} HINTS ${{{0}_plugin_lib_paths_{1}}} )
+if( {0}_{1}_{2}_LIBRARY STREQUAL \"{0}_{1}_{2}_LIBRARY-NOTFOUND\" )
+    message(\"-- Did not find {0} library {2} for {1}. Disabling scanners that depend on this.\")
+else()
+    get_filename_component(lib_path ${{{0}_{1}_{2}_LIBRARY}} PATH)
+    get_filename_component(lib_name ${{{0}_{1}_{2}_LIBRARY}} NAME_WE)
+    string (REGEX REPLACE \"^lib\" \"\" lib_name ${{lib_name}})
+    set ({0}_plugin_libraries_{1} \"${{{0}_plugin_libraries_{1}}} -L${{lib_path}} -l${{lib_name}}\")
+        set ({0}_plugin_lib_full_paths_{1} ${{{0}_plugin_lib_full_paths_{1}}} ${{{0}_{1}_{2}_LIBRARY}})
+    set ({0}_plugin_rpath_{1} \"${{{0}_plugin_rpath_{1}}};${{lib_path}}\")
+    set ({0}_plugin_linked_libs_{1} \"${{{0}_plugin_linked_libs_{1}}}    {2}: ${{{0}_{1}_{2}_LIBRARY}}\\n\")
+    message(\"-- Found {0} library: ${{{0}_{1}_{2}_LIBRARY}}\")
+endif()
+""".format(plug_type[i], directory, lib)
 
             if plug_type[i] in scanbit_auto_incs:
                 if directory in scanbit_auto_incs[plug_type[i]]:
@@ -744,71 +778,73 @@ endif()
                     temp = set(inc for inc in scanbit_auto_incs[plug_type[i]][directory])
                     for inc in temp:
                         if inc == "ROOT":
-                            towrite += "if (" + inc + "_FOUND)\n"
-                            towrite += " "*4 + "set (" + plug_type[i] + "_plugin_includes_" + directory + "\n"
-                            towrite += " "*8 + "${" + plug_type[i] + "_plugin_includes_" + directory + "}\n"
-                            towrite += " "*8 + "${ROOT_INCLUDE_DIR}\n"
-                            towrite += " "*4 + ")\n"
-                            towrite += " "*4 + "set (" + plug_type[i] + "_plugin_found_incs_" + directory
-                            towrite += " \"${" +  plug_type[i] + "_plugin_found_incs_" + directory + "}"
-                            towrite += "    \\\"" + inc + "\\\": ${ROOT_INCLUDE_DIR}\\n\")\n"
-                            towrite += "endif()\n\n"
+                            towrite += """
+if ({0}_FOUND)
+    set ({1}_plugin_includes_{2}
+        ${{{1}_plugin_includes_{2}}}
+        ${ROOT_INCLUDE_DIR}
+    )
+    set ({1}_plugin_found_incs_{2} \"${{{1}_plugin_found_incs_{2}}}\\\"{0}\\\": ${{ROOT_INCLUDE_DIR}}\\n\")
+endif()
+""".format(inc, plug_type[i], directory)
+
                         else:
                             inc_name = plug_type[i] + "_" + directory + "_" + re.sub(r";|/|\.", "_", inc) + "_INCLUDE_PATH"
-                            towrite += "find_path( " + inc_name + " \"" + inc + "\" HINTS ${" + plug_type[i] + "_plugin_includes_" + directory + "})\n"
-                            towrite += "if( NOT " + inc_name + " STREQUAL \"" + inc_name + "-NOTFOUND\" )\n"
-                            towrite += " "*4 + "set (" + plug_type[i] + "_plugin_includes_" + directory + "\n"
-                            towrite += " "*8 + "${" + plug_type[i] + "_plugin_includes_" + directory + "}\n"
-                            towrite += " "*8 + "${" + inc_name + "}\n"
-                            towrite += " "*4 + ")\n"
-                            towrite += " "*4 + "set (" + plug_type[i] + "_plugin_found_incs_" + directory
-                            towrite += " \"${" +  plug_type[i] + "_plugin_found_incs_" + directory + "}"
-                            towrite += "    \\\"" + inc + "\\\": ${" + inc_name + "}\\n\")\n"
-                            towrite += "    message(\"-- Found " + plug_type[i] + " header: ${inc_name}/" + inc + "\")\n"
-                            towrite += "else()\n"
-                            towrite += " "*4 + "set (" + plug_type[i] + "_ok_flag_" + directory + " \"    file_missing: \\\"" + inc + "\\\"\")\n"
-                            towrite += "    message(\"-- Did not find "+ plug_type[i] + " header " + inc + ". Disabling scanners that depend on this.\")\n"
-                            towrite += "endif()\n\n"
-            towrite += "if( NOT ${" + plug_type[i] + "_plugin_linked_libs_" + directory + "} STREQUAL \"\" OR NOT ${" + plug_type[i] + "_plugin_found_incs_" + directory + "} STREQUAL \"\")\n"
-            towrite += " "*4 + "set ( reqd_lib_output \"${reqd_lib_output}lib" + plug_type[i] + "_" + directory + ".so:\\n\" )\n"
-            towrite += " "*4 + "if( NOT ${" + plug_type[i] + "_plugin_linked_libs_" + directory + "} STREQUAL \"\" )\n"
-            towrite += " "*8 + "set ( reqd_lib_output \"${reqd_lib_output}  linked_libs: \\n${" + plug_type[i] + "_plugin_linked_libs_" + directory + "}\")\n"
-            towrite += " "*4 + "endif()\n"
-            towrite += " "*4 + "if( NOT ${" + plug_type[i] + "_plugin_found_incs_" + directory + "} STREQUAL \"\" )\n"
-            towrite += " "*8 + "set ( reqd_lib_output \"${reqd_lib_output}  found_incs: \\n${" + plug_type[i] + "_plugin_found_incs_" + directory + "}\")\n"
-            towrite += " "*4 + "endif()\n"
-            towrite += "endif()\n\n"
+                            towrite += """
+find_path( {0} \"{1}\" HINTS ${{{2}_plugin_includes_{3}}})
+if( NOT {0} STREQUAL \"{0}-NOTFOUND\" )
+    set ({2}_plugin_includes_{3}
+        ${{{2}_plugin_includes_{3}}}
+        ${{{0}}}
+    )
+    set ({2}_plugin_found_incs_{3} \"${{{2}_plugin_found_incs_{3}}}    \\\"{1}\\\": ${{{0}}}\\n\")
+    message(\"-- Found {2} header: ${{inc_name}}/{1}\")
+else()
+    set ({2}_ok_flag_{3} \"    file_missing: \\\"{1}\\\"\")
+    message(\"-- Did not find {2} header {1}. Disabling scanners that depend on this.\")
+endif()
+""".format(inc_name, inc, plug_type[i], directory)
+                            
+            towrite += """
+if( NOT ${{{0}_plugin_linked_libs_{1}}} STREQUAL \"\" OR NOT ${{{0}_plugin_found_incs_{1}}} STREQUAL \"\")
+    set ( reqd_lib_output \"${{reqd_lib_output}}lib{0}_{1}.so:\\n\" )
+    if( NOT ${{{0}_plugin_linked_libs_{1}}} STREQUAL \"\" )
+        set ( reqd_lib_output \"${{reqd_lib_output}}  linked_libs: \\n${{{0}_plugin_linked_libs_{1}}}\")
+    endif()
+    if( NOT ${{{0}_plugin_found_incs_{1}}} STREQUAL \"\" )
+        set ( reqd_lib_output \"${{reqd_lib_output}}  found_incs: \\n${{{0}_plugin_found_incs_{1}}}\")
+    endif()
+endif()
 
-            towrite += "if ( " + plug_type[i] + "_ok_flag_" + directory + " STREQUAL \"\" )\n"
-            towrite += " "*4 + "add_gambit_library( " + plug_type[i] + "_" + directory + " VISIBLE OPTION SHARED SOURCES ${"
-            towrite += plug_type[i] + "_plugin_sources_" + directory + "} HEADERS ${"
-            towrite += plug_type[i] + "_plugin_headers_" + directory + "} )\n"
-            towrite += " "*4 + "set_target_properties( " + plug_type[i] + "_" + directory + "\n" + " "*23 + "PROPERTIES\n"
-            towrite += " "*23 + "INSTALL_RPATH \"${" + plug_type[i] + "_plugin_rpath_" + directory + "}\"\n";
-            towrite += " "*23 + "COMPILE_FLAGS \"${" + plug_type[i] + "_compile_flags_" + directory + "}\"\n"
-            towrite += " "*23 + "INCLUDE_DIRECTORIES \"${" + plug_type[i] + "_plugin_includes_" + directory + "}\"\n"
-            towrite += " "*23 + "ARCHIVE_OUTPUT_DIRECTORY \"${CMAKE_CURRENT_SOURCE_DIR}/lib\"\n"
-            towrite += " "*23 + "LIBRARY_OUTPUT_DIRECTORY \"${CMAKE_CURRENT_SOURCE_DIR}/lib\")\n"
-            towrite += " "*4 + "target_link_libraries( " + plug_type[i] + "_" + directory + " ${" + plug_type[i] + "_plugin_lib_full_paths_" + directory + "})\n"
-            #towrite += "target_include_directories( " + inc_dirs ")\n\n"
-            #towrite += " "*4 + "add_dependencies(gambit " + plug_type[i] + "_" + directory + ")\n"
-            towrite += " "*4 + "set (SCANNERBIT_PLUGINS " + " ${SCANNERBIT_PLUGINS} " + plug_type[i] + "_" + directory + ")\n"
-            towrite += "else()\n"
-            towrite += " "*4 + "set ( exclude_lib_output \"${exclude_lib_output}lib" + plug_type[i] + "_" + directory + ".so:\\n"
-            towrite += "  plugins:\\n"
-            for plug in scanbit_plugins[plug_type[i]][directory]:
-                towrite += "    - " + plug[4] + "\\n"
-            towrite += "  reason: \\n${" + plug_type[i] + "_ok_flag_" + directory + "}\\n\" )\n"
-            towrite += "endif()\n\n"
+if ( {0}_ok_flag_{1} STREQUAL \"\" )
+    add_gambit_library( {0}_{1} VISIBLE OPTION SHARED SOURCES ${{{0}_plugin_sources_{1}}} HEADERS ${{{0}_plugin_headers_{1}}} )
+    set_target_properties( {0}_{1}
+                       PROPERTIES
+                       INSTALL_RPATH \"${{{0}_plugin_rpath_{1}}}\"
+                       COMPILE_FLAGS \"${{{0}_compile_flags_{1}}}\"
+                       INCLUDE_DIRECTORIES \"${{{0}_plugin_includes_{1}}}\"
+                       ARCHIVE_OUTPUT_DIRECTORY \"${{CMAKE_CURRENT_SOURCE_DIR}}/lib\"
+                       LIBRARY_OUTPUT_DIRECTORY \"${{CMAKE_CURRENT_SOURCE_DIR}}/lib\")
+    target_link_libraries( {0}_{1} ${{{0}_plugin_lib_full_paths_{1}}})
+    set (SCANNERBIT_PLUGINS  ${{SCANNERBIT_PLUGINS}} {0}_{1})
+else()
+    set ( exclude_lib_output \"${{exclude_lib_output}}lib{0}_{1}.so:\\n  plugins:\\n{2}\\n  reason: \\n${{{0}_ok_flag_{1}}}\\n\" )
+endif()
+""".format(plug_type[i], directory, "\\n".join(["    - {0}".format(plug[4]) for plug in scanbit_plugins[plug_type[i]][directory]]))
 
-    towrite += "set(SCANNERBIT_PLUGINS ${SCANNERBIT_PLUGINS} PARENT_SCOPE)\n"
-    towrite += "file( WRITE ${PROJECT_SOURCE_DIR}/scratch/scanbit_excluded_libs.yaml \"${exclude_lib_output}\" )\n"
-    towrite += "file( WRITE ${PROJECT_SOURCE_DIR}/scratch/scanbit_linked_libs.yaml \"${reqd_lib_output}\" )\n\n"
+    towrite += """
+set(SCANNERBIT_PLUGINS ${SCANNERBIT_PLUGINS} PARENT_SCOPE)
+file( WRITE ${PROJECT_SOURCE_DIR}/scratch/scanbit_excluded_libs.yaml \"${exclude_lib_output}\" )
+file( WRITE ${PROJECT_SOURCE_DIR}/scratch/scanbit_linked_libs.yaml \"${reqd_lib_output}\" )
 
-    towrite += "#################################################################################\n\n"
-    towrite += "foreach (plugin ${SCANNERBIT_PLUGINS})\n"
-    towrite += " "*4 + "add_dependencies(ScannerBit ${plugin})\n"
-    towrite += "endforeach()\n"
+#################################################################################
+
+foreach (plugin ${SCANNERBIT_PLUGINS})
+    add_dependencies(ScannerBit ${plugin})
+endforeach()
+
+add_subdirectory(python)
+"""
 
     cmake = "./ScannerBit/CMakeLists.txt"
     candidate = build_dir+"/ScannerBit_CMakeLists.txt.candidate"

@@ -19,12 +19,12 @@
 
 #include <string>
 #include <typeinfo>
-#ifdef __NO_PLUGIN_BOOST__
+//#ifdef __NO_PLUGIN_BOOST__
   #include <memory>
-#else
-  #include <boost/shared_ptr.hpp>
-  #include <boost/enable_shared_from_this.hpp>
-#endif
+//#else
+//  #include <boost/shared_ptr.hpp>
+//  #include <boost/enable_shared_from_this.hpp>
+//#endif
 
 #ifdef WITH_MPI
   #include <chrono>
@@ -40,13 +40,13 @@ namespace Gambit
 {
     namespace Scanner
     {
-#ifdef __NO_PLUGIN_BOOST__
+//#ifdef __NO_PLUGIN_BOOST__
         using std::shared_ptr;
         using std::enable_shared_from_this;
-#else
-        using boost::shared_ptr;
-        using boost::enable_shared_from_this;
-#endif
+//#else
+//        using boost::shared_ptr;
+//        using boost::enable_shared_from_this;
+//#endif
 
         /// Generic function base used by the scanner.  Can be Likelihood, observables, etc.
         template<typename T>
@@ -91,6 +91,27 @@ namespace Gambit
 
         public:
             Function_Base(double offset = 0.) : myRealRank(0), purpose_offset(offset), use_alternate_min_LogL(false), _scanner_can_quit(false)
+            {
+                #ifdef WITH_MPI
+                GMPI::Comm world;
+                myRealRank = world.Get_rank();
+                #endif
+                // Check if we should be using the alternative min_LogL from the very beginning
+                // (for example if we are resuming from a run where we already switched to this)
+                if (Gambit::Scanner::Plugins::plugin_info.resume_mode())
+                {
+                   use_alternate_min_LogL = Gambit::Scanner::Plugins::plugin_info.check_alt_min_LogL_state();
+                }
+                else
+                {
+                   // New scan; delete any old persistence file
+                   // But only do this if we are process 0, otherwise I think race conditions can occur.
+                   // (TODO do we need to ensure a sync here in case other processes than 0 get too far ahead?)
+                   if(myRealRank==0) Gambit::Scanner::Plugins::plugin_info.clear_alt_min_LogL_state();
+                }
+            }
+            
+            void init()
             {
                 #ifdef WITH_MPI
                 GMPI::Comm world;

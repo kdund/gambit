@@ -246,7 +246,7 @@ namespace Gambit
                 else
                     resumed = true;
                 
-                std::cout << loop_ranks << std::endl;
+                //std::cout << loop_ranks << std::endl;
                 
 #ifdef WITH_MPI
                 for (int i = 0; i < NChains; i++)
