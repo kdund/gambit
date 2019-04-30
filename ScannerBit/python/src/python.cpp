@@ -57,7 +57,7 @@ namespace Gambit
                         if (errmesg != NULL)
                         {
                             std::string msg = "error loading lib/libScannerBit.so: " + std::string(errmesg) + "\n";
-                            PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+                            throw std::runtime_error(msg);
                         }
                         else
                         {
@@ -67,7 +67,7 @@ namespace Gambit
                     else
                     {
                         std::string msg = "Cannot open lib/libScannerBit.so: " + std::string(dlerror());
-                        PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+                        throw std::runtime_error(msg);
                     }
                 }
                 
@@ -114,13 +114,13 @@ namespace Gambit
                         }
                         else
                         {
-                            std::runtime_error("infile parameter should be either a str or dict.");
+                            throw std::runtime_error("infile parameter should be either a str or dict.");
                             return -1;
                         }
                     }
                     catch(const std::exception& e)
                     {
-                        PyErr_SetString(PyExc_RuntimeError, e.what());
+                        throw std::runtime_error(e.what());
                         return -1;
                     }
                 }
