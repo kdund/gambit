@@ -227,7 +227,7 @@ BOOST_PYTHON_MODULE(ScannerBit)
 {
     py::class_<scanpy::scan>("scan", py::init<>())
         .def("run", &scanpy::scan::run, (py::arg("inifile"), py::arg("lnlike")="", py::arg("prior")="", py::arg("restart")=false))
-        .def("diagnostics", py::raw_function(&scanpy::scan::dianostic)) ;
+        .def("diagnostics", py::raw_function(&scanpy::scan::dianostic));
     
     py::def("ensure_size", &scanpy::ensure_size_vec);
     

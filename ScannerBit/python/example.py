@@ -40,7 +40,7 @@ myscan.run(inifile="ScannerBit.yaml", lnlike={"LogLike": like}, prior=prior, res
 # myscan.run(inifile=inifile, lnlike={"LogLike": like}, prior=prior, restart=True)
 
 ###
-### or can also run multiple proposes ###
+### or can also run multiple proposes
 ###
 # lnlike = {
 #     "LogLike1": like1
