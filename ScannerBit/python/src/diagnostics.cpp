@@ -4,7 +4,7 @@
 #include "gambit/Utils/screen_print_utils.hpp"
 #include "gambit/ScannerBit/plugin_loader.hpp"
 #include "gambit/ScannerBit/scanner_utils.hpp"
-#include "diagnostics.hpp"
+#include "interface.hpp"
 
 
 namespace Gambit
@@ -64,6 +64,8 @@ namespace Gambit
             class internal_diagnostics : public diagnostics
             {
             private:
+                std::unordered_set<std::string> valid_commands;
+                
             public:
                 internal_diagnostics()
                 {
@@ -107,6 +109,8 @@ namespace Gambit
                         ff_prior_diagnostic(command);
                     }
                 }
+                
+                ~internal_diagnostics(){}
             };
 
         }
@@ -115,17 +119,15 @@ namespace Gambit
     
 }
 
+typedef Gambit::Scanner::Python::diagnostics diag_type;
+typedef Gambit::Scanner::Python::internal_diagnostics in_diag_type;
+
 extern "C"
 {
     
-    Gambit::Scanner::Python::diagnostics * __attribute__ ((visibility ("default"))) get_diagnostics()
+    std::shared_ptr<Gambit::Scanner::Python::diagnostics> get_diagnostics()
     {
-        return new Gambit::Scanner::Python::internal_diagnostics();
-    }
-    
-    void __attribute__ ((visibility ("default"))) del_diagnostics(Gambit::Scanner::Python::diagnostics *diag)
-    {
-        delete diag;
+        return std::shared_ptr<diag_type>(new in_diag_type(), [](diag_type *in){delete in;});
     }
     
 }

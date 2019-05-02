@@ -2,18 +2,18 @@
 #include <unordered_map>
 #include <iostream>
 #include <vector>
-#include <boost/python.hpp>
-#include <boost/python/numpy.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/python/suite/indexing/map_indexing_suite.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/stl_bind.h>
+#include <pybind11/functional.h>
 #include <dlfcn.h>
 #include <memory>
 
-#include "diagnostics.hpp"
+#include "interface.hpp"
 #include "python_utils.hpp"
 #include "run_scan.hpp"
 
-namespace py = boost::python;
+namespace py = pybind11;
 namespace scanpy = Gambit::Scanner::Python;
 
 typedef std::unordered_map<std::string, double> map_type;
@@ -28,24 +28,18 @@ namespace Gambit
         namespace Python
         {
             
-            typedef void (*print_aux_type)(const std::string &, const double &);
-            static print_aux_type aux_printer;
+            std::shared_ptr<printer_interface> printer_manager;
             
             class scan
             {
             private:
-                typedef int (*run_scan_node_type)(YAML::Node *, const Gambit::Scanner::Factory_Base *, Gambit::Priors::BasePrior *, bool);
-                typedef int (*run_scan_str_type)(std::string *, const Gambit::Scanner::Factory_Base *, Gambit::Priors::BasePrior *, bool);
-                typedef diagnostics *(*diag_factory_type)();
-                typedef void (*diag_del_type)(diagnostics *);
-                typedef void (*print_main_type)(std::unordered_map<std::string, double> &key_map);
+                typedef std::shared_ptr<diagnostics>(*diag_factory_type)();
+                typedef std::shared_ptr<scan_interface>(*scan_factory_type)();
                 
                 void *plugin;
                 std::shared_ptr<diagnostics> diag;
-                
-                run_scan_str_type run_scan_str;
-                run_scan_node_type run_scan_node;
-                print_main_type main_printer;
+                std::shared_ptr<scan_interface> gambit_scan;
+                std::shared_ptr<printer_interface> printer; 
                 
             public:
                 scan()
@@ -53,12 +47,8 @@ namespace Gambit
                     plugin = dlopen ("lib/libScannerBit.so", RTLD_NOW|RTLD_GLOBAL);
                     if (bool(plugin))
                     {
-                        run_scan_str = (run_scan_str_type)dlsym(plugin, "run_scan_str");
-                        run_scan_node = (run_scan_node_type)dlsym(plugin, "run_scan_node");
-                        diag_factory_type factory = (diag_factory_type)dlsym(plugin, "get_diagnostics");
-                        diag_del_type diag_del = (diag_del_type)dlsym(plugin, "del_diagnostics");
-                        main_printer = (print_main_type)dlsym(plugin, "print_main_parameters");
-                        aux_printer = (print_aux_type)dlsym(plugin, "print_aux_parameters");
+                        diag_factory_type diag_factory = (diag_factory_type)dlsym(plugin, "get_diagnostics");
+                        scan_factory_type scan_factory = (scan_factory_type)dlsym(plugin, "get_gambit_interface");
                         
                         const char *errmesg = dlerror();
                         if (errmesg != NULL)
@@ -68,7 +58,9 @@ namespace Gambit
                         }
                         else
                         {
-                            diag = std::shared_ptr<diagnostics>(factory(), diag_del);
+                            diag = diag_factory();
+                            gambit_scan = scan_factory();
+                            printer_manager = printer = gambit_scan->get_printer();
                         }
                     }
                     else
@@ -78,21 +70,22 @@ namespace Gambit
                     }
                 }
                 
-                static py::object dianostic(py::tuple args, py::dict)
+                std::shared_ptr<printer_interface> get_printer()
                 {
-                    scan &self = py::extract<scan &>(args[0]);
-                    
-                    for (int i = 1, end = py::len(args); i < end; i++)
+                    return printer;
+                }
+                
+                void dianostic(py::args args, py::kwargs)
+                {
+                    for (auto &&arg : args)
                     {
-                        (*self.diag.get())(std::string(py::extract<std::string>(args[i])));
+                        (*diag)(arg.cast<std::string>());
                     }
-                    
-                    return py::object();
                 }
                 
                 static void print(const std::string &key, const double &value)
                 {
-                    (*aux_printer)(key, value);
+                    printer_manager->aux_printer(key, value);
                 }
             
                 int run(py::object file_obj, py::object func_obj, py::object prior_obj, bool restart)
@@ -102,27 +95,44 @@ namespace Gambit
                         scanpy::python_prior *prior = 0;
                         scanpy::python_factory *factory = 0;
                         
-                        if (std::string(py::extract<std::string>(func_obj.attr("__class__").attr("__name__"))) != "str")
+                        if (PyCallable_Check(func_obj.ptr()))
                         {
-                            factory = new scanpy::python_factory(func_obj, main_printer);
+                            factory = new scanpy::python_factory(func_obj, printer);
+                        }
+                        else if (pytype(func_obj) == "dict")
+                        {
+                            for (auto &&func : py::cast<py::dict>(func_obj))
+                            {
+                                if (pytype(func.first) != "str")
+                                {
+                                    throw std::runtime_error("Inputted purpose is not a \'str\'");
+                                }
+                                
+                                if (not PyCallable_Check(func.second.ptr()))
+                                {
+                                    throw std::runtime_error("Inputted function for purpose \"" + pyconvert<std::string>(func.first) + " is call callable.");
+                                }
+                            }
+                            
+                            factory = new scanpy::python_factory(func_obj, printer);
                         }
                         
-                        if (std::string(py::extract<std::string>(prior_obj.attr("__class__").attr("__name__"))) != "str")
+                        if (PyCallable_Check(prior_obj.ptr()))
                         {
                             prior = new scanpy::python_prior(prior_obj);
                         }
                         
-                        if (std::string(py::extract<std::string>(file_obj.attr("__class__").attr("__name__"))) == "str")
+                        if (pytype(file_obj) == "str")
                         {
-                            std::string filename = std::string(py::extract<std::string>(file_obj));
+                            std::string filename = pyconvert<std::string>(file_obj);
                         
-                            return run_scan_str(&filename, factory, prior, !restart);
+                            return gambit_scan->run_scan_str(&filename, factory, prior, !restart);
                         }
-                        else if (std::string(py::extract<std::string>(file_obj.attr("__class__").attr("__name__"))) == "dict")
+                        else if (pytype(file_obj) == "dict")
                         {
-                            YAML::Node node = pyyconvert(file_obj);
+                            YAML::Node node = pyyamlconvert(file_obj);
                             
-                            return run_scan_node(&node, factory, prior, !restart);
+                            return gambit_scan->run_scan_node(&node, factory, prior, !restart);
                         }
                         else
                         {
@@ -139,79 +149,6 @@ namespace Gambit
                 
                 ~scan(){dlclose(plugin);}
             };
-
-            std::shared_ptr<vec_type> std_vector_init( py::object l)
-            {
-                return std::shared_ptr<vec_type>(new vec_type(py::stl_input_iterator< double >(l), py::stl_input_iterator< double >()));
-            }
-            
-            std::shared_ptr<scanpy::fake_vector> fake_vector_init( py::object l)
-            {
-                return std::shared_ptr<scanpy::fake_vector>(new scanpy::fake_vector(py::stl_input_iterator< double >(l), py::stl_input_iterator< double >()));
-            }
-            
-            std::shared_ptr<map_type> std_map_init( py::dict l)
-            {
-                map_type *map = new map_type();
-                for(auto it = py::stl_input_iterator< py::tuple >(l.items()), end = py::stl_input_iterator< py::tuple >(); it != end; ++it)
-                {
-                    (*map)[std::string(py::extract<std::string>((*it)[0]))] = double(py::extract<double>((*it)[1]));
-                }
-                
-                return std::shared_ptr<map_type>(map);
-            }
-            
-            std::string std_vector_format(vec_type &x)
-            {
-                std::stringstream ss;
-                
-                if (x.size() == 0)
-                    return "[]";
-                    
-                ss << "[" << x[0];
-                for (int i = 1, end = x.size(); i < end; i++)
-                {
-                    ss << ", " << x[i];
-                }
-                ss << "]";
-                
-                return ss.str();
-            }
-            
-            std::string fake_vector_format(scanpy::fake_vector &x)
-            {
-                std::stringstream ss;
-                
-                if (x.size() == 0)
-                    return "[]";
-                    
-                ss << "[" << x[0];
-                for (int i = 1, end = x.size(); i < end; i++)
-                {
-                    ss << ", " << x[i];
-                }
-                ss << "]";
-                
-                return ss.str();
-            }
-            
-            std::string std_map_format(map_type &x)
-            {
-                std::stringstream ss;
-                
-                if (x.size() == 0)
-                    return "{}";
-                    
-                auto it = x.begin(), end = x.end();
-                ss << "{" << it->first << ": " << it->second;
-                for (++it; it != end; ++it)
-                {
-                    ss << it->first << ": " << it->second << ", ";
-                }
-                ss << "}";
-                
-                return ss.str();
-            }
             
             void ensure_size_fake(scanpy::fake_vector &vec, size_t i)
             {
@@ -235,36 +172,71 @@ namespace Gambit
     
 }
 
-BOOST_PYTHON_MODULE(ScannerBit)
+PYBIND11_MAKE_OPAQUE(vec_type);
+PYBIND11_MAKE_OPAQUE(map_type);
+PYBIND11_MAKE_OPAQUE(scanpy::fake_vector);
+
+PYBIND11_MODULE(ScannerBit, m)
 {
-    py::class_<scanpy::scan>("scan", py::init<>())
-        .def("run", &scanpy::scan::run, (py::arg("inifile"), py::arg("lnlike")="", py::arg("prior")="", py::arg("restart")=false))
-        .def("diagnostics", py::raw_function(&scanpy::scan::dianostic));
-    
-    py::def("print", &scanpy::scan::print);
+    py::class_<scanpy::scan>(m, "scan")
+        .def(py::init<>())
+        .def("run", &scanpy::scan::run, py::arg("inifile"), py::arg("lnlike")="", py::arg("prior")="", py::arg("restart")=false)
+        .def("diagnostics", &scanpy::scan::dianostic)
+        .def("get_printer", &scanpy::scan::get_printer);
         
-    py::def("ensure_size", &scanpy::ensure_size_vec);
+    py::class_<scanpy::printer_interface, std::shared_ptr<scanpy::printer_interface>>(m, "printer_manager")
+        .def("aux_printer", [](scanpy::printer_interface&in, const std::string &key, const double &val)
+        {
+            in.aux_printer(key, val);
+        })
+        .def("main_printer", [](scanpy::printer_interface&in, const std::string &key, const double &val)
+        {
+            in.main_printer(key, val);
+        })
+        .def("main_printer", [](scanpy::printer_interface&in, map_type &map)
+        {
+            in.main_printer(map);
+        });
     
-    py::def("ensure_size", &scanpy::ensure_size_fake);
+    m.def("print", &scanpy::scan::print);
+        
+    m.def("ensure_size", &scanpy::ensure_size_vec);
     
-    py::class_<vec_type, std::shared_ptr<vec_type>>("std_vector")
-       .def("__init__", py::make_constructor(&scanpy::std_vector_init))
-       .def("__repr__", &scanpy::std_vector_format)
-       .def("__str__", &scanpy::std_vector_format)
-       .def("ensure_size", &scanpy::ensure_size_vec)
-       .def(py::vector_indexing_suite< vec_type >());
+    m.def("ensure_size", &scanpy::ensure_size_fake);
+    
+    py::bind_vector<vec_type, std::shared_ptr<vec_type>>(m, "std_vector")
+        .def("ensure_size", &scanpy::ensure_size_vec);
+        
+    py::bind_vector<scanpy::fake_vector, std::shared_ptr<scanpy::fake_vector>>(m, "fake_vector")
+        .def("ensure_size", &scanpy::ensure_size_fake);
        
-    py::class_<map_type, std::shared_ptr<map_type>>("std_unordered_map")
-       .def("__init__", py::make_constructor(&scanpy::std_map_init))
-       .def("__repr__", &scanpy::std_map_format)
-       .def("__str__", &scanpy::std_map_format)
-       .def(py::map_indexing_suite< map_type >());
-       
-    py::class_<scanpy::fake_vector, std::shared_ptr<scanpy::fake_vector>>("fake_vector")
-       .def("__init__", py::make_constructor(&scanpy::fake_vector_init))
-       .def("__repr__", &scanpy::fake_vector_format)
-       .def("__str__", &scanpy::fake_vector_format)
-       .def("ensure_size", &scanpy::ensure_size_fake)
-       .def(py::vector_indexing_suite< scanpy::fake_vector >());
-       
+    py::bind_map<map_type, std::shared_ptr<map_type>>(m, "std_unordered_map")
+    .def(py::init<>())
+    .def(py::init([](py::handle d)
+    {
+        auto m = new map_type();
+        for (auto &&it : py::cast<py::dict>(d))
+        {
+            (*m)[it.first.cast<std::string>()] = it.second.cast<double>();
+        }
+        
+        return std::shared_ptr<map_type>(m);
+    }))
+    .def("keys", [](py::handle o) -> py::list
+    {
+        return py::list(py::iter(o));
+    })
+    .def("items", [](py::handle o) -> py::list
+    {
+        return py::list(o.begin());
+    })
+    .def("values", [](py::handle o) -> py::list
+    {
+        py::list l;
+        for (auto &&i : py::cast<py::dict>(o))
+            l.append(i.second);
+        
+        return l;
+    });
+    
 }

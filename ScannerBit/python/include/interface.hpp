@@ -1,5 +1,5 @@
-#ifndef __SCANNERBIT_PYTHON_DIAGOSTICS_HPP__
-#define __SCANNERBIT_PYTHON_DIAGOSTICS_HPP__
+#ifndef __SCANNERBIT_PYTHON_INTERFACE_HPP__
+#define __SCANNERBIT_PYTHON_INTERFACE_HPP__
 
 #include <string>
 #include <unordered_set>

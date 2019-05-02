@@ -52,9 +52,10 @@ namespace Gambit
             
         namespace Python
         {
-            namespace py = pybind11;
+            namespace py = boost::python;
             
-            class __attribute__ ((visibility("default"))) python_function_base : public Gambit::Scanner::Function_Base<double (std::unordered_map<std::string, double> &)>
+            
+            class python_function_base : public Gambit::Scanner::Function_Base<double (std::unordered_map<std::string, double> &)>
             {
             private:
                 typedef std::shared_ptr<printer_interface> print_ptr;
@@ -67,12 +68,12 @@ namespace Gambit
                 double main(std::unordered_map<std::string, double> &map)
                 {
                     print->main_printer(map);
-                    return pyconvert<double>(obj(py::cast(&map)));
+                    return pyconvert<double>(obj(boost::ref(map)));
                 }
                 
             };
 
-            class __attribute__ ((visibility("default"))) python_factory : public Factory_Base
+            class python_factory : public Factory_Base
             {
             private:
                 typedef std::shared_ptr<printer_interface> print_ptr;
@@ -83,18 +84,19 @@ namespace Gambit
                 python_factory(py::object obj, print_ptr print) : print(print)
                 {
                     if (pytype(obj) == "dict")
-                        map = py::cast<py::dict>(obj);
+                        map = py::dict(obj);
                     else
                         map["Likelihood"] = obj;
                 }
                 
                 void *operator()(const std::string &purpose) const
                 {
-                    return new python_function_base(map[py::cast(&purpose)], print);
+                    return new python_function_base(map[purpose], print);
                 }
             };
             
-            class __attribute__ ((visibility("default"))) python_prior : public Gambit::Priors::BasePrior
+            
+            class python_prior : public Gambit::Priors::BasePrior
             {
             private:
                 py::object obj;
@@ -104,7 +106,7 @@ namespace Gambit
                 {
                     fake_vector vec;
                     std::unordered_map<std::string, double> map;
-                    obj(py::cast(&vec), py::cast(&map));
+                    obj(boost::ref(vec), boost::ref(map));
                     this->setSize(vec.size());
                     
                     for (auto it = map.begin(), end = map.end(); it != end; ++it)
@@ -115,7 +117,7 @@ namespace Gambit
                 
                 void transform(const std::vector<double> &vec, std::unordered_map<std::string, double> &map) const
                 {
-                    obj(py::cast(&vec), py::cast(&map));
+                    obj(boost::ref(vec), boost::ref(map));
                 }
             };
 

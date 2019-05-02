@@ -1,9 +1,9 @@
 #ifndef __SCANNERBIT_PYTHON_UTILS_HPP__
 #define __SCANNERBIT_PYTHON_UTILS_HPP__
 
-#include <iterator>
-#include <pybind11/pybind11.h>
-#include <yaml-cpp/yaml.h>
+#include<iterator>
+#include<boost/python.hpp>
+#include<yaml-cpp/yaml.h>
 
 namespace Gambit
 {
@@ -13,44 +13,62 @@ namespace Gambit
         
         namespace Python
         {
-            namespace py = pybind11;
+         
+            namespace py = boost::python;
             
-            inline std::string pytype(py::handle o)
+            template<class T>
+            inline py::list std_vector_to_py_list(const std::vector<T>& v)
             {
-                return o.attr("__class__").attr("__name__").cast<std::string>();
+                py::object get_iter = py::iterator<std::vector<T> >();
+                py::object iter = get_iter(v);
+                return py::list(iter);
+            }
+            
+            inline std::string pytype(py::object o) 
+            {
+                return std::string(py::extract<std::string>(o.attr("__class__").attr("__name__")));
             }
             
             template<typename T>
-            T pyconvert(py::handle o)
+            T pyconvert(py::object o)
             {
-                return o.cast<T>();
+                return T(py::extract<T>(o));
             }
             
-            inline YAML::Node pyyamlconvert(py::handle o)
+            inline YAML::Node pyyamlconvert(py::object o)
             {
                 YAML::Node node;
                 std::string type = pytype(o);
                 
                 if (type == "dict")
                 {
-                    for (auto &&it : py::cast<py::dict>(o))
+                    py::dict d = py::dict(o);
+                    
+                    for (auto it = py::stl_input_iterator< py::tuple >(d.items()), 
+                             end = py::stl_input_iterator< py::tuple >(); it != end; it++)
                     {
-                        node[pyyamlconvert(it.first)] = pyyamlconvert(it.second);
+                        node[pyyamlconvert((*it)[0])] = pyyamlconvert((*it)[1]);
                     }
                 }
                 else if(type == "list")
                 {
-                    for (auto &&it : py::cast<py::list>(o))
+                    py::list l = py::list(o);
+                    
+                    for (auto it = py::stl_input_iterator< py::object >(l), 
+                             end = py::stl_input_iterator< py::object >(); it != end; it++)
                     {
-                        node.push_back(pyyamlconvert(it));
+                        node.push_back(pyyamlconvert(*it));
                     }
                     
                 }
                 else if(type == "tuple")
                 {
-                    for (auto &&it : py::cast<py::tuple>(o))
+                    py::tuple l = py::tuple(o);
+                    
+                    for (auto it = py::stl_input_iterator< py::object >(l), 
+                             end = py::stl_input_iterator< py::object >(); it != end; it++)
                     {
-                        node.push_back(pyyamlconvert(it));
+                        node.push_back(pyyamlconvert(*it));
                     }
                     
                 }

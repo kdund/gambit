@@ -20,8 +20,7 @@ if(PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
 
     set(libscannerbit_headers 
         ${CMAKE_CURRENT_SOURCE_DIR}/include/diagnostics.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/python_utils.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/run_scan.hpp
+
     )
 
     set(libscannerbit_include_dirs
@@ -54,15 +53,15 @@ if(PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
 
     add_gambit_deps(libscannerbit)
 
-    ################## scan_python ##################
+    ############### boost scan_python ###############
     
-    set(scan_module_libraries
+    set(scan_boost_module_libraries
         ${PYTHON_LIBRARIES}
         ${CMAKE_CURRENT_SOURCE_DIR}/contrib/boost_python/lib/libboost_python${PYTHON_VERSION_STRING}.so
         yaml-cpp
     )
     
-     set(scan_module_include_dirs
+     set(scan_boost_module_include_dirs
         #${GAMBIT_INCDIRS}
         #${mkpath_INCLUDE_DIR}
         ${yaml_INCLUDE_DIR}
@@ -72,8 +71,62 @@ if(PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
         ${CMAKE_CURRENT_SOURCE_DIR}/contrib/boost_python/include
     )
     
+    set(scan_boost_module_headers
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/diagnostics.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/python_utils_boost.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/run_scan_boost.hpp
+    )
+    
+    set(scan_boost_module_sources
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/python_boost.cpp
+    )
+    
+    set(scan_boost_module_rpaths
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/contrib/boost_python/lib
+    )
+
+    
+    
+    add_library(scan_boost_python SHARED ${scan_boost_module_sources} ${scan_boost_module_headers} )
+    
+    target_link_libraries(scan_boost_python ${scan_boost_module_libraries})
+
+    set_target_properties(scan_boost_python PROPERTIES 
+                                        #CXX_VISIBILITY_PRESET default
+                                        #VISIBILITY_INLINES_HIDDEN FALSE
+                                        INSTALL_RPATH "${scan_boost_module_rpaths}"
+                                        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                                        LIBRARY_OUTPUT_NAME "BoostScannerBit"
+                                        INCLUDE_DIRECTORIES "${scan_boost_module_include_dirs}"
+                                        LINKER_LANGUAGE CXX
+                                        PREFIX ""
+                                        SUFFIX .so)
+                                    
+    add_dependencies(scan_boost_python boost_python)
+    add_dependencies(scan_boost_python libscannerbit)
+    
+    ################## scan_python ##################
+    
+    set(scan_module_libraries
+        ${PYTHON_LIBRARIES}
+        yaml-cpp
+    )
+    
+     set(scan_module_include_dirs
+        #${GAMBIT_INCDIRS}
+        #${mkpath_INCLUDE_DIR}
+        ${PROJECT_SOURCE_DIR}/contrib/pybind11/include
+        ${yaml_INCLUDE_DIR}
+        ${PYTHON_INCLUDE_DIRS}
+        ${PROJECT_SOURCE_DIR}/ScannerBit/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+    
     set(scan_module_headers
         ${CMAKE_CURRENT_SOURCE_DIR}/include/diagnostics.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/python_utils.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/run_scan.hpp
     )
     
     set(scan_module_sources
@@ -85,8 +138,6 @@ if(PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
         ${CMAKE_CURRENT_SOURCE_DIR}/contrib/boost_python/lib
     )
 
-    
-    
     add_library(scan_python SHARED ${scan_module_sources} ${scan_module_headers} )
     
     target_link_libraries(scan_python ${scan_module_libraries})
@@ -102,7 +153,6 @@ if(PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
                                         PREFIX ""
                                         SUFFIX .so)
                                     
-    add_dependencies(scan_python boost_python)
     add_dependencies(scan_python libscannerbit)
     
     #################################################
