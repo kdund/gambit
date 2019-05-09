@@ -150,6 +150,7 @@ PYBIND11_MAKE_OPAQUE(scanpy::fake_vector);
 
 PYBIND11_MODULE(ScannerBit, m)
 {
+    
     py::class_<scanpy::scan>(m, "scan")
         .def(py::init<bool>())
         .def("run", &scanpy::scan::run, py::arg("inifile"), py::arg("lnlike")="", py::arg("prior")="", py::arg("restart")=false)
@@ -194,6 +195,10 @@ PYBIND11_MODULE(ScannerBit, m)
         
         return std::shared_ptr<map_type>(m);
     }))
+    .def("has_key", [](std::unordered_map<std::string, double> &map, const std::string &key) -> bool
+    {
+        return map.find(key) != map.end();
+    })
     .def("keys", [](py::handle o) -> py::list
     {
         return py::list(py::iter(o));
@@ -210,5 +215,7 @@ PYBIND11_MODULE(ScannerBit, m)
         
         return l;
     });
+    
+    py::implicitly_convertible<py::dict, std::unordered_map<std::string, double>>();
     
 }

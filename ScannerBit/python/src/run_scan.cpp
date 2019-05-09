@@ -66,14 +66,18 @@ namespace Gambit
                 exit(1);
             }
 
-            scan_interface::scan_interface(bool init_mpi)
+            scan_interface::scan_interface(bool 
+                                            #ifdef WITH_MPI
+                                                init_mpi
+                                            #endif
+                                          )
             {
                 #ifdef WITH_MPI
-                if (init_mpi)
-                {
-                    //bool allow_finalize(true);
-                    GMPI::Init();
-                }
+                    if (init_mpi)
+                    {
+                        //bool allow_finalize(true);
+                        GMPI::Init();
+                    }
                 #endif
             }
                 
