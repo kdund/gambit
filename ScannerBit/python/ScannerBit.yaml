@@ -74,9 +74,15 @@ Scanner:
       jumps: 10
       Bs: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
       #projection_dimension: 4
-      
+     
+    poly:
+      plugin: polychord
+      like: LogLike
+      nlive: 2000
+      tol: 0.1
+
     de:
-      plugin: Diver
+      plugin: diver
       like: LogLike
       NP: 1000
       path: "runs"
