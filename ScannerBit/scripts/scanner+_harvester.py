@@ -103,28 +103,20 @@ def main(argv):
 
     prior_txt_out = "#ifndef PRIOR_LIST_HPP\n#define PRIOR_LIST_HPP\n\n"
 
-    cmakelist_txt_out = """
-set( scannerbit_sources
-"""
+    cmakelist_txt_out = "set( scannerbit_sources\n"
     for source in sorted(scanbit_srcs):
         cmakelist_txt_out += " "*16 + "src/" + source + "\n"
     for source in sorted(prior_srcs):
         cmakelist_txt_out += " "*16 + "src/" + source.split('/ScannerBit/src/')[1] + "\n"
     cmakelist_txt_out += ")\n\n"
 
-    cmakelist_txt_out += """
-set( scannerbit_headers
-"""
+    cmakelist_txt_out += "set( scannerbit_headers\n"
     for header in sorted(scanbit_hdrs):
         cmakelist_txt_out += " "*16 + "include/gambit/ScannerBit/" + header + "\n"
     for header in sorted(prior_hdrs):
         cmakelist_txt_out += " "*16 + "include/gambit/ScannerBit/" + header.split('/ScannerBit/include/gambit/ScannerBit/')[1] + "\n"
         prior_txt_out += "#include \"" + "gambit/ScannerBit/" + header.split('/ScannerBit/include/gambit/ScannerBit/')[1] + "\"\n"
-    cmakelist_txt_out += ")\n"
-    cmakelist_txt_out += """
-add_gambit_library( ScannerBit OPTION OBJECT SOURCES ${scannerbit_sources} HEADERS ${scannerbit_headers} )
-
-"""
+    cmakelist_txt_out += ")\n\nadd_gambit_library( ScannerBit OPTION OBJECT SOURCES ${scannerbit_sources} HEADERS ${scannerbit_headers} )\n\n"
 
     prior_txt_out += "\n#endif\n"
     ## end adding scannerbit files to CMakeLists.txt ##
@@ -310,24 +302,16 @@ add_gambit_library( ScannerBit OPTION OBJECT SOURCES ${scannerbit_sources} HEADE
             # Add entries for this plugin only if there are non-excluded sources found.
             if (cmakelist_txt_out_tmp != ""):
               # First do the sources
-              cmakelist_txt_out = cmakelist_txt_out + """
-set( {0}_plugin_sources_{1}
-{2}
-)
-""".format(plug_type[i], directory, cmakelist_txt_out_tmp)
+              cmakelist_txt_out = cmakelist_txt_out+"set( " + plug_type[i] + "_plugin_sources_" + directory + "\n" + cmakelist_txt_out_tmp + ")\n\n"
               # Now do the headers
-              cmakelist_txt_out += """
-set( {0}_plugin_headers_{1}
-""".format(plug_type[i], directory)
+              cmakelist_txt_out += "set( " + plug_type[i] + "_plugin_headers_" + directory + "\n"
               for header in sorted(headers):
                   cmakelist_txt_out += " "*16 + "include/gambit/ScannerBit/" + header.split('/ScannerBit/include/gambit/ScannerBit/')[1] + "\n"
-              cmakelist_txt_out += ")\n"
+              cmakelist_txt_out += ")\n\n"
             # Otherwise notify that the plugin is ditched.
             else:
               for x in exclude_list:
-                cmakelist_txt_out += """
-message(\"${{BoldCyan}} X Excluding {0} from ScannerBit configuration.${{ColourReset}}\")
-""".format(x)
+                cmakelist_txt_out += "message(\"${BoldCyan} X Excluding " + x + " from ScannerBit configuration.${ColourReset}\")\n\n"
 
     # Loop over all plugin types
     for config_file, plugin_type in zip(config_files, plug_type):
@@ -794,62 +778,61 @@ endif()
 
                         else:
                             inc_name = plug_type[i] + "_" + directory + "_" + re.sub(r";|/|\.", "_", inc) + "_INCLUDE_PATH"
-                            towrite += """
-unset({0} CACHE)
-find_path( {0} \"{1}\" HINTS ${{{2}_plugin_includes_{3}}})
-if( NOT {0} STREQUAL \"{0}-NOTFOUND\" )
-    set ({2}_plugin_includes_{3}
-        ${{{2}_plugin_includes_{3}}}
-        ${{{0}}}
-    )
-    set ({2}_plugin_found_incs_{3} \"${{{2}_plugin_found_incs_{3}}}    \\\"{1}\\\": ${{{0}}}\\n\")
-    message(\"-- Found {2} header: ${{inc_name}}/{1}\")
-else()
-    message(\"-- Did not find {2} header {1}. Disabling scanners that depend on this.\")
-    set ({2}_ok_flag_{3} \"${{{2}_ok_flag_{3}}} \\n    - file missing: \\\"{1}\\\"\")
-endif()
-""".format(inc_name, inc, plug_type[i], directory)
-                            
-            towrite += """
-if( NOT ${{{0}_plugin_linked_libs_{1}}} STREQUAL \"\" OR NOT ${{{0}_plugin_found_incs_{1}}} STREQUAL \"\")
-    set ( reqd_lib_output \"${{reqd_lib_output}}lib{0}_{1}.so:\\n\" )
-    if( NOT ${{{0}_plugin_linked_libs_{1}}} STREQUAL \"\" )
-        set ( reqd_lib_output \"${{reqd_lib_output}}  linked_libs: \\n${{{0}_plugin_linked_libs_{1}}}\")
-    endif()
-    if( NOT ${{{0}_plugin_found_incs_{1}}} STREQUAL \"\" )
-        set ( reqd_lib_output \"${{reqd_lib_output}}  found_incs: \\n${{{0}_plugin_found_incs_{1}}}\")
-    endif()
-endif()
+                            towrite += "unset(" + inc_name + " CACHE)\n"
+                            towrite += "find_path( " + inc_name + " \"" + inc + "\" HINTS ${" + plug_type[i] + "_plugin_includes_" + directory + "})\n"
+                            towrite += "if( NOT " + inc_name + " STREQUAL \"" + inc_name + "-NOTFOUND\" )\n"
+                            towrite += " "*4 + "set (" + plug_type[i] + "_plugin_includes_" + directory + "\n"
+                            towrite += " "*8 + "${" + plug_type[i] + "_plugin_includes_" + directory + "}\n"
+                            towrite += " "*8 + "${" + inc_name + "}\n"
+                            towrite += " "*4 + ")\n"
+                            towrite += " "*4 + "set (" + plug_type[i] + "_plugin_found_incs_" + directory
+                            towrite += " \"${" +  plug_type[i] + "_plugin_found_incs_" + directory + "}"
+                            towrite += "    \\\"" + inc + "\\\": ${" + inc_name + "}\\n\")\n"
+                            towrite += "    message(\"-- Found " + plug_type[i] + " header: ${" + inc_name + "}/" + inc + "\")\n"
+                            towrite += "else()\n"
+                            towrite += "    message(\"-- Did not find "+ plug_type[i] + " header " + inc + ". Disabling scanners that depend on this.\")\n"
+                            towrite += "    set(" + plug_type[i] + "_ok_flag_" + directory + " \"${" + plug_type[i] + "_ok_flag_" + directory + "}, " + inc + "\")\n"
+                            towrite += "endif()\n\n"
+            towrite += "if( NOT ${" + plug_type[i] + "_plugin_linked_libs_" + directory + "} STREQUAL \"\" OR NOT ${" + plug_type[i] + "_plugin_found_incs_" + directory + "} STREQUAL \"\")\n"
+            towrite += " "*4 + "set ( reqd_lib_output \"${reqd_lib_output}lib" + plug_type[i] + "_" + directory + ".so:\\n\" )\n"
+            towrite += " "*4 + "if( NOT ${" + plug_type[i] + "_plugin_linked_libs_" + directory + "} STREQUAL \"\" )\n"
+            towrite += " "*8 + "set ( reqd_lib_output \"${reqd_lib_output}  linked_libs: \\n${" + plug_type[i] + "_plugin_linked_libs_" + directory + "}\")\n"
+            towrite += " "*4 + "endif()\n"
+            towrite += " "*4 + "if( NOT ${" + plug_type[i] + "_plugin_found_incs_" + directory + "} STREQUAL \"\" )\n"
+            towrite += " "*8 + "set ( reqd_lib_output \"${reqd_lib_output}  found_incs: \\n${" + plug_type[i] + "_plugin_found_incs_" + directory + "}\")\n"
+            towrite += " "*4 + "endif()\n"
+            towrite += "endif()\n\n"
 
-if ( {0}_ok_flag_{1} STREQUAL \"\" )
-    add_gambit_library( {0}_{1} VISIBLE OPTION SHARED SOURCES ${{{0}_plugin_sources_{1}}} HEADERS ${{{0}_plugin_headers_{1}}} )
-    set_target_properties( {0}_{1}
-                       PROPERTIES
-                       INSTALL_RPATH \"${{{0}_plugin_rpath_{1}}}\"
-                       COMPILE_FLAGS \"${{{0}_compile_flags_{1}}}\"
-                       INCLUDE_DIRECTORIES \"${{{0}_plugin_includes_{1}}}\"
-                       ARCHIVE_OUTPUT_DIRECTORY \"${{CMAKE_CURRENT_SOURCE_DIR}}/lib\"
-                       LIBRARY_OUTPUT_DIRECTORY \"${{CMAKE_CURRENT_SOURCE_DIR}}/lib\")
-    target_link_libraries( {0}_{1} ${{{0}_plugin_lib_full_paths_{1}}})
-    set (SCANNERBIT_PLUGINS  ${{SCANNERBIT_PLUGINS}} {0}_{1})
-else()
-    set ( exclude_lib_output \"${{exclude_lib_output}}lib{0}_{1}.so:\\n  plugins:\\n{2}\\n  reason: ${{{0}_ok_flag_{1}}}\\n\\n\" )
-endif()
-""".format(plug_type[i], directory, "\\n".join(["    - {0}".format(plug[4]) for plug in scanbit_plugins[plug_type[i]][directory]]))
+            towrite += "if ( " + plug_type[i] + "_ok_flag_" + directory + " STREQUAL \"\" )\n"
+            towrite += " "*4 + "add_gambit_library( " + plug_type[i] + "_" + directory + " VISIBLE OPTION SHARED SOURCES ${"
+            towrite += plug_type[i] + "_plugin_sources_" + directory + "} HEADERS ${"
+            towrite += plug_type[i] + "_plugin_headers_" + directory + "} )\n"
+            towrite += " "*4 + "set_target_properties( " + plug_type[i] + "_" + directory + "\n" + " "*23 + "PROPERTIES\n"
+            towrite += " "*23 + "INSTALL_RPATH \"${" + plug_type[i] + "_plugin_rpath_" + directory + "}\"\n";
+            towrite += " "*23 + "COMPILE_FLAGS \"${" + plug_type[i] + "_compile_flags_" + directory + "}\"\n"
+            towrite += " "*23 + "INCLUDE_DIRECTORIES \"${" + plug_type[i] + "_plugin_includes_" + directory + "}\"\n"
+            towrite += " "*23 + "ARCHIVE_OUTPUT_DIRECTORY \"${CMAKE_CURRENT_SOURCE_DIR}/lib\"\n"
+            towrite += " "*23 + "LIBRARY_OUTPUT_DIRECTORY \"${CMAKE_CURRENT_SOURCE_DIR}/lib\")\n"
+            towrite += " "*4 + "target_link_libraries( " + plug_type[i] + "_" + directory + " ${" + plug_type[i] + "_plugin_lib_full_paths_" + directory + "})\n"
+            #towrite += "target_include_directories( " + inc_dirs ")\n\n"
+            #towrite += " "*4 + "add_dependencies(gambit " + plug_type[i] + "_" + directory + ")\n"
+            towrite += " "*4 + "set (SCANNERBIT_PLUGINS " + " ${SCANNERBIT_PLUGINS} " + plug_type[i] + "_" + directory + ")\n"
+            towrite += "else()\n"
+            towrite += " "*4 + "set ( exclude_lib_output \"${exclude_lib_output}lib" + plug_type[i] + "_" + directory + ".so:\\n"
+            towrite += "  plugins:\\n"
+            for plug in scanbit_plugins[plug_type[i]][directory]:
+                towrite += "    - " + plug[4] + "\\n"
+            towrite += "  reason: ${" + plug_type[i] + "_ok_flag_" + directory + "}\\n\" )\n"
+            towrite += "endif()\n\n"
 
-    towrite += """
-set(SCANNERBIT_PLUGINS ${SCANNERBIT_PLUGINS} PARENT_SCOPE)
-file( WRITE ${PROJECT_SOURCE_DIR}/scratch/scanbit_excluded_libs.yaml \"${exclude_lib_output}\" )
-file( WRITE ${PROJECT_SOURCE_DIR}/scratch/scanbit_linked_libs.yaml \"${reqd_lib_output}\" )
+    towrite += "set(SCANNERBIT_PLUGINS ${SCANNERBIT_PLUGINS} PARENT_SCOPE)\n"
+    towrite += "file( WRITE ${PROJECT_SOURCE_DIR}/scratch/build_time/scanbit_excluded_libs.yaml \"${exclude_lib_output}\" )\n"
+    towrite += "file( WRITE ${PROJECT_SOURCE_DIR}/scratch/build_time/scanbit_linked_libs.yaml \"${reqd_lib_output}\" )\n\n"
 
-#################################################################################
-
-foreach (plugin ${SCANNERBIT_PLUGINS})
-    add_dependencies(ScannerBit ${plugin})
-endforeach()
-
-add_subdirectory(python)
-"""
+    towrite += "#################################################################################\n\n"
+    towrite += "foreach (plugin ${SCANNERBIT_PLUGINS})\n"
+    towrite += " "*4 + "add_dependencies(ScannerBit ${plugin})\n"
+    towrite += "endforeach()\n"
 
     cmake = "./ScannerBit/CMakeLists.txt"
     candidate = build_dir+"/ScannerBit_CMakeLists.txt.candidate"
@@ -901,12 +884,12 @@ add_subdirectory(python)
                 towrite += " "*6 + "not_found_include_paths: [" + ",".join(scanbit_reqs[type_key][plug_key][version_key][6]) + "]\n"
         towrite += "\n"
 
-    req_entries = "./scratch/scanbit_reqd_entries.yaml"
+    req_entries = "./scratch/build_time/scanbit_reqd_entries.yaml"
     candidate = build_dir+"/scanbit_reqd_entries.yaml.candidate"
     with open(candidate,"w") as f: f.write(towrite)
     update_only_if_different(req_entries, candidate)
 
-    if verbose: print("Finished writing scratch/scanbit_reqd_entries.yaml")
+    if verbose: print("Finished writing scratch/build_time/scanbit_reqd_entries.yaml")
 
     # Make a candidate scanbit_reqd_entries.yaml file
     towrite = "\
@@ -941,12 +924,12 @@ add_subdirectory(python)
                         towrite += " "*6 + flag + ": " + scanbit_flags[type_key][plug_key][version_key][flag][0] + "\n"
         towrite += "\n"
 
-    flag_entries = "./scratch/scanbit_flags.yaml"
+    flag_entries = "./scratch/build_time/scanbit_flags.yaml"
     candidate = build_dir+"/scanbit_flags.yaml.candidate"
     with open(candidate,"w") as f: f.write(towrite)
     update_only_if_different(flag_entries, candidate)
 
-    if verbose: print("Finished writing scratch/scanbit_flags.yaml")
+    if verbose: print("Finished writing scratch/build_time/scanbit_flags.yaml")
 
     # Make a candidate linkedout.cmake file
     towrite = "\
