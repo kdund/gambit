@@ -668,7 +668,7 @@ set ({0}_plugin_includes_{1}
                 ${{PLUGIN_INCLUDE_DIRECTORIES}}
                 ${{CMAKE_CURRENT_SOURCE_DIR}}/include/gambit/ScannerBit/{0}s/{1}
 """.format(plug_type[i], directory)
-            
+
             if plug_type[i] in scanbit_incs:
                 if directory in scanbit_incs[plug_type[i]]:
                     for inc in scanbit_incs[plug_type[i]][directory]:
