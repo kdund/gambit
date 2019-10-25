@@ -1,1 +1,1 @@
-../3.10/multinest.hpp
+../multinest_3.10/multinest.hpp
