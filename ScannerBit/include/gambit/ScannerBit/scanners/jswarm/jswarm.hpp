@@ -38,10 +38,13 @@ namespace Gambit
 
       private:
 
+        /// Current personal best fit
+        double personal_best_value;
+
         /// Parameter space boundaries
         /// @{
-        std::vector<double>* upperbounds;
         std::vector<double>* lowerbounds;
+        std::vector<double>* upperbounds;
         /// @}
 
         /// pointer to random number generator engine to use
@@ -58,11 +61,8 @@ namespace Gambit
         /// Current objective value
         double lnlike;
 
-        /// Current personal best fit
-        /// @{
-        double personal_best_value;
+        /// Current personal best-fit vector
         std::vector<double> personal_best_x;
-        /// @}
 
         /// Constructor
         particle(int, std::vector<double>&, std::vector<double>&, rng_type&);

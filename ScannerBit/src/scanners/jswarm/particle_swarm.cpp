@@ -29,7 +29,7 @@ namespace Gambit
 
     /// Constructor
     particle_swarm::particle_swarm()
-    : global_best_value(std::numeric_limits<double>::min())
+    : global_best_value(-std::numeric_limits<double>::max())
     , nPar_total(0)
     , phi1_index(0)
     , phi2_index(0)
@@ -52,7 +52,7 @@ namespace Gambit
     , phi1(1.5)
     , phi2(1.5)
     , convthresh(1e-2)
-    , min_acceptable_value(std::numeric_limits<double>::min())
+    , min_acceptable_value(-std::numeric_limits<double>::max())
     , adapt_phi(false)
     , adapt_omega(false)
     , init_stationary(false)
@@ -113,7 +113,7 @@ namespace Gambit
     /// Release the swarm
     void particle_swarm::run()
     {
-      if (verbose > 0) std::cout << "j-Swarm: beginning run..." << std::endl;
+      if (verbose > 0) std::cout << "j-Swarm: beginning run." << std::endl;
 
       // Initialise the first population
       // TODO MPI parallelise
@@ -127,6 +127,8 @@ namespace Gambit
         update_best_fits(p);
       }
 
+      if (verbose > 1) std::cout << "  j-Swarm: successfully tested first generation." << std::endl;
+
       // Save the run settings and first generation
       save_settings();
       save_generation();
@@ -135,19 +137,21 @@ namespace Gambit
       // TODO MPI parallelise
       for (int gen = 2; gen <= maxgen; gen++)
       {
-        if (verbose > 1) std::cout << "j-Swarm: moving on to generation " << gen << "." << std::endl;
+        if (verbose > 1) std::cout << "  j-Swarm: moving on to generation " << gen << "." << std::endl;
 
         // Loop over the population of this generation
         for (int pi = 0; pi < NP; pi++)
         {
 
-          if (verbose > 2) std::cout << "j-Swarm: working on particle " << pi << "." << std::endl;
+          if (verbose > 2) std::cout << "    j-Swarm: working on particle " << pi << "." << std::endl;
 
           // Get the particle
           particle& p = particles[pi];
 
           // Update the particle's position and velocity
           update_particle(p);
+
+          if (verbose > 2) std::cout << "      j-Swarm: updated velocity and position for particle " << pi << "." << std::endl;
 
           // Check if the particle is now outside the prior box, and fix it if so (when bndry = 2 or 3)
           if (implement_boundary_policy(p))
@@ -161,17 +165,19 @@ namespace Gambit
             // Increment the number of function calls
             fcall += 1;
 
+            if (verbose > 2) std::cout << "      j-Swarm: new objective value for particle " << pi << ": " << p.lnlike << std::endl;
+
             // Check whether the calling code wants us to shut down early
             if (Scanner::Plugins::plugin_info.early_shutdown_in_progress())
             {
               // TODO broadcast to other processes and get out
-              break;
+              //break;
             }
 
           else
           {
             // Return the worst possible likelihood if the point is outside the prior box and bndry = 1
-            p.lnlike = std::numeric_limits<double>::min();
+            p.lnlike = -std::numeric_limits<double>::max();
           }
 
         }
@@ -233,11 +239,18 @@ namespace Gambit
       switch(bndry)
       {
         // Randomly choose new values somewhere in the prior box, and reset the velocity.
-        case(2): p.init(init_stationary);
+        case 2:
+          p.init(init_stationary);
+          break;
+
         // Reflect the position and velocity about the borders violated
-        case(3): p.reflect();
+        case 3:
+          p.reflect();
+          break;
+
         // Something went wrong
-        default: Scanner::scan_error().raise(LOCAL_INFO, "Unrecognised bndry setting for j-Swarm. Please set bndry = 1, 2 or 3.");
+        default:
+           Scanner::scan_error().raise(LOCAL_INFO, "Unrecognised bndry setting for j-Swarm. Please set bndry = 1, 2 or 3.");
       }
       return true;
     }

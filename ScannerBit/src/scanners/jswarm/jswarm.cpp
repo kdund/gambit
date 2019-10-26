@@ -128,7 +128,7 @@ scanner_plugin(jswarm, version(1, 0, 0))
     }                        //TODO Needs to be set automatically somehow?  Not yet sure how to deal with discrete parameters in GAMBIT.
 
     // Run the swarm
-    if (swarm.likelihood_function->getRank() == 0) cout << "Starting j-Swarm run..." << std::endl;
+    if (swarm.likelihood_function->getRank() == 0) cout << "Starting j-Swarm run...\n" << std::endl;
     swarm.run();
     if (swarm.likelihood_function->getRank() == 0) cout << "j-Swarm run finished!" << std::endl;
     return 0;
