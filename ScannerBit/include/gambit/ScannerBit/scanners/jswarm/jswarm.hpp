@@ -88,8 +88,20 @@ namespace Gambit
 
       private:
 
-        /// Particles making up the swarm
+        /// MPI process rank
+        int rank;
+
+        /// Number of MPI processes
+        int nprocs;
+
+        /// MPI process rank
+        int NP_per_rank;
+
+        /// Particles making up the swarm (rank-local selection)
         std::vector<particle> particles;
+
+        /// Particles making up the swarm (total population)
+        std::vector<particle> particles_global;
 
         /// Current global best fit
         /// @{
@@ -146,6 +158,9 @@ namespace Gambit
         /// Check whether the swarm has converged
         bool converged();
 
+        /// Collect all particles and related data to rank 0
+        void collect_data();
+
       public:
 
         /// Pointer to objective function
@@ -195,6 +210,9 @@ namespace Gambit
 
         /// Number of calls to the objective function so far
         int fcall;
+
+        /// Number of calls to the objective function so far across all processes
+        int fcall_global;
 
         /// Inertial weight
         double omega;

@@ -118,15 +118,15 @@ scanner_plugin(jswarm, version(1, 0, 0))
     // Unit cube boundaries
     for (int i = 0; i < swarm.nPar; i++)
     {
-      swarm.lowerbounds[i] = 0.0;
-      swarm.upperbounds[i] = 1.0;
+      swarm.lowerbounds.at(i) = 0.0;
+      swarm.upperbounds.at(i) = 1.0;
     }
 
     // Discrete parameters
     for (int i = 0; i < swarm.nDiscrete; i++)
     {
-      swarm.discrete[i] = 0; //Inidices of discrete parameters (C-style, starting at 0)
-    }                        //TODO Needs to be set automatically somehow?  Not yet sure how to deal with discrete parameters in GAMBIT.
+      swarm.discrete.at(i) = 0; //Inidices of discrete parameters (C-style, starting at 0)
+    }                           //TODO Needs to be set automatically somehow?  Not yet sure how to deal with discrete parameters in GAMBIT.
 
     // Run the swarm
     if (swarm.likelihood_function->getRank() == 0) cout << "Starting j-Swarm run...\n" << std::endl;

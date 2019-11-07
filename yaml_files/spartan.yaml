@@ -89,7 +89,6 @@ Scanner:
       NP: 400
       adaptive_phi: true
       adaptive_omega: true
-      save_particles_natively: true
       verbosity: 2
 
 ObsLikes:

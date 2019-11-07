@@ -130,6 +130,7 @@ namespace Gambit
       template<> struct get_mpi_data_type<float>             { static MPI_Datatype type() { return MPI_FLOAT;              } };
       template<> struct get_mpi_data_type<double>            { static MPI_Datatype type() { return MPI_DOUBLE;             } };
       template<> struct get_mpi_data_type<long double>       { static MPI_Datatype type() { return MPI_LONG_DOUBLE;        } };
+      template<> struct get_mpi_data_type<bool>              { static MPI_Datatype type() { return MPI_C_BOOL;             } };
       /// @}
 
       /// Typedef'd types; enabled only where they differ from the true types, and where the relevant constants have been
@@ -376,6 +377,30 @@ namespace Gambit
                 static const MPI_Datatype datatype = get_mpi_data_type<T>::type();
 
                 MPI_Scatter (&sendbuf[0], 1, datatype, &recvbuf, 1, datatype, root, boundcomm);
+            }
+
+            template<typename T>
+            void Gather (T &sendbuf, T &recvbuf, int root)
+            {
+                static const MPI_Datatype datatype = get_mpi_data_type<T>::type();
+
+                MPI_Gather (&sendbuf, 1, datatype, &recvbuf, 1, datatype, root, boundcomm);
+            }
+
+            template<typename T>
+            void Gather (T &sendbuf, T &recvbuf, int count, int root)
+            {
+                static const MPI_Datatype datatype = get_mpi_data_type<T>::type();
+
+                MPI_Gather (&sendbuf, count, datatype, &recvbuf, count, datatype, root, boundcomm);
+            }
+
+            template<typename T>
+            void Reduce (T &sendbuf, T &recvbuf, MPI_Op op, int root)
+            {
+                static const MPI_Datatype datatype = get_mpi_data_type<T>::type();
+
+                MPI_Reduce (&sendbuf, &recvbuf, 1, datatype, op, root, boundcomm);
             }
 
             template<typename T>

@@ -36,6 +36,7 @@ namespace Gambit
       if (nPar <= 0) Scanner::scan_error().raise(LOCAL_INFO, "You must set nPar positive before creating a particle!");
       x.resize(nPar);
       v.resize(nPar);
+      personal_best_x.resize(nPar);
     }
 
     /// Initialise a particle with a random position and zero/random velocity
@@ -45,9 +46,9 @@ namespace Gambit
       {
         double extent = upperbounds->at(i) - lowerbounds->at(i);
         // Set position randomly
-        x[i] = lowerbounds->at(i) + extent * std::generate_canonical<double, 32>(*rng);
+        x.at(i) = lowerbounds->at(i) + extent * std::generate_canonical<double, 32>(*rng);
         // Reset velocity to either zero or a random number in [-extent,extent].  Velocity is in units of [x] per generation 'timestep'.
-        v[i] = (zero_vel ? 0.0 : extent * (2.0 * std::generate_canonical<double, 32>(*rng) - 1.0));
+        v.at(i) = (zero_vel ? 0.0 : extent * (2.0 * std::generate_canonical<double, 32>(*rng) - 1.0));
       }
     }
 
@@ -71,12 +72,12 @@ namespace Gambit
         double ub = upperbounds->at(i);
 
         // Work out whether it is the upper, lower, or no bound exceeded for this dimension
-        if (x[i] < lb)
+        if (x.at(i) < lb)
         {
           bound_violated = lb;
           other_bound = ub;
         }
-        else if (x[i] > ub)
+        else if (x.at(i) > ub)
         {
           bound_violated = ub;
           other_bound = lb;
@@ -84,17 +85,17 @@ namespace Gambit
         else continue;
 
         // Work out how many prior box lengths the particle has overshot (= how many reflections needed)
-        double overshoot_factor = (x[i] - bound_violated) / (ub - lb);
+        double overshoot_factor = (x.at(i) - bound_violated) / (ub - lb);
         int reflections = (int) overshoot_factor;
         double offset = (overshoot_factor - reflections) *  (ub - lb);
 
         // Perform the reflections
         if (reflections%2 == 1) // odd number of reflections
         {
-          x[i] = bound_violated - offset;
-          v[i] = -v[i];
+          x.at(i) = bound_violated - offset;
+          v.at(i) = -v.at(i);
         }
-        else x[i] = other_bound + offset; //even number of reflections
+        else x.at(i) = other_bound + offset; //even number of reflections
       }
 
 
@@ -104,7 +105,7 @@ namespace Gambit
     std::vector<double> particle::discretised_x(const std::vector<int>& indices)
     {
       std::vector<double> x_discrete = x;
-      for (int i : indices) x_discrete[i] = round(x[i]);
+      for (int i : indices) x_discrete.at(i) = round(x.at(i));
       return x_discrete;
     }
 

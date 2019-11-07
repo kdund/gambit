@@ -19,6 +19,10 @@
 
 #include <limits>
 #include <fstream>
+#include <algorithm>
+#include <iterator>
+
+#include "gambit/Utils/mpiwrapper.hpp"
 #include "gambit/ScannerBit/scanners/jswarm/jswarm.hpp"
 
 namespace Gambit
@@ -29,7 +33,9 @@ namespace Gambit
 
     /// Constructor
     particle_swarm::particle_swarm()
-    : global_best_value(-std::numeric_limits<double>::max())
+    : rank(0)
+    , nprocs(1)
+    , global_best_value(-std::numeric_limits<double>::max())
     , mean_lnlike(-std::numeric_limits<double>::max())
     , sfim(1.0)
     , nPar_total(0)
@@ -92,38 +98,70 @@ namespace Gambit
       // Set the limits for the parameters of the algorithm to be determined adaptively
       if (adapt_phi)
       {
-        lowerbounds[phi1_index] = lowerbounds[phi2_index] = 1.5;
-        upperbounds[phi1_index] = upperbounds[phi2_index] = 3.0;
+        lowerbounds.at(phi1_index) = lowerbounds.at(phi2_index) = 1.5;
+        upperbounds.at(phi1_index) = upperbounds.at(phi2_index) = 3.0;
       }
       if (adapt_omega)
       {
-        lowerbounds[omega_index] = 0.0;
-        upperbounds[omega_index] = 1.0;
+        lowerbounds.at(omega_index) = 0.0;
+        upperbounds.at(omega_index) = 1.0;
       }
+
+      #ifdef WITH_MPI
+        // Get the MPI process rank and total number of MPI processes
+        rank = GMPI::Comm().Get_rank();
+
+        // Determine the total number of MPI processes, and make sure NP is a multiple of it
+        nprocs = GMPI::Comm().Get_size();
+        if (NP%nprocs != 0)
+        {
+          int new_NP = (NP/nprocs + 1) * nprocs;
+          if (rank == 0 and verbose > 0)
+          {
+            cout << "j-Swarm: WARNING The requested NP (" << NP << ") is not a multiple of the number of MPI processes (" << nprocs << ")." << endl
+                 << "         Will instead use NP = " << new_NP <<  "." << endl;
+          }
+          NP = new_NP;
+          if (rank == 0) save_settings();
+        }
+      #endif
+
+      // Work out the local population size
+      NP_per_rank = NP/nprocs;
 
       // Seed the random number generator
       input_seed = seed;
-      if (seed == -1) seed = std::random_device()();
+      if (seed == -1 and rank == 0) seed = std::random_device()();
+      #ifdef WITH_MPI
+        GMPI::Comm().Bcast(seed, 1, 0);
+        seed += rank;
+      #endif
+      if (rank == 0 and verbose > 2) cout << "j-Swarm:  seeding RNG on rank " << rank << " with " << seed << endl;
       rng.seed(seed);
 
       // Create the particles
-      for (int i = 0; i < NP; i++) particles.push_back(particle(nPar_total, lowerbounds, upperbounds, rng));
+      if (rank == 0) particles_global.resize(NP, particle(nPar_total, lowerbounds, upperbounds, rng));
+      particles.resize(NP_per_rank, particle(nPar_total, lowerbounds, upperbounds, rng));
 
       // Create an array to hold the indices of the discrete parameters
       if (nDiscrete != 0) discrete.resize(nDiscrete);
 
-      // Initialise the convergence measures
-      conv_progress.resize(convsteps);
-      for (auto& x : conv_progress) x = 1.0;
+      if (rank == 0)
+      {
+        // Initialise the convergence measures
+        conv_progress.resize(convsteps);
+        for (auto& x : conv_progress) x = 1.0;
 
-      // Done
-      if (verbose > 1) cout << "j-Swarm: successfully initialised swarm with NP = " << NP << ", nPar = " << nPar << ", nDiscrete = " << nDiscrete << endl;
+        // Done
+        if (verbose > 1) cout << "j-Swarm: successfully initialised swarm with NP = " << NP
+                                            << ", nPar = " << nPar << ", nDiscrete = " << nDiscrete << endl;
+      }
     }
 
     /// Release the swarm
     void particle_swarm::run()
     {
-      if (verbose > 0) cout << "j-Swarm: beginning run." << endl;
+      if (rank == 0 and verbose > 0) cout << "j-Swarm: beginning run." << endl;
       int gen = 1;
 
       if (resume)
@@ -134,13 +172,13 @@ namespace Gambit
       }
       else
       {
+        if (rank == 0 and verbose > 2) cout << "  j-Swarm: initialising first generation of particles." << endl;
+
         // Initialise the first population
-        // TODO MPI parallelise
-        if (verbose > 2) cout << "  j-Swarm: initialising first generation of particles." << endl;
-        for (int i = 0; i < NP; i++)
+        for (int i = 0; i < NP_per_rank; i++)
         {
           // Extract a reference to the particle we are trying to intialise
-          particle& p = particles[i];
+          particle& p = particles.at(i);
 
           // Attempt to initialise the particle's position and velocity
           p.init(init_stationary);
@@ -165,44 +203,57 @@ namespace Gambit
               p.lnlike = likelihood_function(discrete.empty() ? p.x : p.discretised_x(discrete));
               fcall += 1;
             }
-            if (verbose > 2) cout << "    j-Swarm: took " << j << " attempts to initialise particle number " << i << "." << endl;
+
             // Throw an error if n-shot failed and using fatal n-shot initialisation
             if (p.lnlike < min_acceptable_value and init_pop_strategy == 3) Scanner::scan_error().raise(LOCAL_INFO,
             "Failed to initialise particle to a valid starting vector (using init_pop_strategy = 3).");
+
+            if (verbose > 2)
+            {
+              int n = NP_per_rank * rank + i;
+              cout << "    j-Swarm: took " << j << " attempts to initialise particle number " << n + 1 << "." << endl;
+            }
+
           }
 
           // Sort out the personal bests and global best for the new population
           update_best_fits(p);
         }
+        // Collect the data from all processes to rank 0
+        collect_data();
 
-        if (converged()) Scanner::scan_error().raise(LOCAL_INFO, "j-Swarm converged immediately! This is a bug, please report it.");
-        if (verbose > 1) cout << "  j-Swarm: successfully tested first generation." << endl;
+        if (rank == 0)
+        {
+          if (converged()) Scanner::scan_error().raise(LOCAL_INFO, "j-Swarm converged immediately! This is a bug, please report it.");
+          if (verbose > 1) cout << "  j-Swarm: successfully tested first generation." << endl;
 
-        // Save the run settings and first generation
-        save_settings();
-        save_generation(gen);
+          // Save the run settings and first generation
+          save_settings();
+          save_generation(gen);
+        }
       }
 
       // Begin the generation loop
-      // TODO MPI parallelise
       gen += 1;
       for (; gen <= maxgen and sfim > convthresh; gen++)
       {
-        if (verbose > 1) cout << "  j-Swarm: moving on to generation " << gen << "." << endl;
+        if (rank == 0 and verbose > 1) cout << "  j-Swarm: moving on to generation " << gen << "." << endl;
 
         // Loop over the population of this generation
-        for (int pi = 0; pi < NP; pi++)
+        for (int i = 0; i < NP_per_rank; i++)
         {
 
-          if (verbose > 2) cout << "    j-Swarm: working on particle " << pi << "." << endl;
+          // Work out which particle number this really is
+          int n = NP_per_rank * rank + i;
+          if (verbose > 2) cout << "    j-Swarm: working on particle " << n+1 << "." << endl;
 
           // Get the particle
-          particle& p = particles[pi];
+          particle& p = particles.at(i);
 
           // Update the particle's position and velocity
           update_particle(p);
 
-          if (verbose > 2) cout << "      j-Swarm: updated velocity and position for particle " << pi << "." << endl;
+          if (verbose > 2) cout << "      j-Swarm: updated velocity and position for particle " << n + 1 << "." << endl;
 
           // Check if the particle is now outside the prior box, and fix it if so (when bndry = 2 or 3)
           if (implement_boundary_policy(p))
@@ -216,7 +267,7 @@ namespace Gambit
             // Increment the number of function calls
             fcall += 1;
 
-            if (verbose > 2) cout << "      j-Swarm: new objective value for particle " << pi << ": " << p.lnlike << endl;
+            if (verbose > 2) cout << "      j-Swarm: new objective value for particle " << n + 1 << ": " << p.lnlike << endl;
           }
           else
           {
@@ -226,43 +277,117 @@ namespace Gambit
 
         }
 
+        // Collect the data from all processes to rank 0
+        collect_data();
+
         // Check for convergence or early shutdown requested by the calling code
-        bool complete = converged();
+        bool complete;
+        if (rank == 0) complete = converged();
+        #ifdef WITH_MPI
+          GMPI::Comm().Bcast(complete, 1, 0);
+        #endif
         if (complete or Scanner::Plugins::plugin_info.early_shutdown_in_progress())
         {
-          if (verbose > 0)
+          if (rank == 0)
           {
-            if (complete) cout << "  j-Swarm: swarm converged." << endl;
-            else cout << "  j-Swarm: quit requested by objective function; saving and exiting..." << endl;
+            if (verbose > 0)
+            {
+              if (complete) cout << "  j-Swarm: swarm converged." << endl;
+              else cout << "  j-Swarm: quit requested by objective function; saving and exiting..." << endl;
+            }
+            save_generation(gen);
           }
-          save_generation(gen);
           break;
         }
 
         // Save generation
-        if (gen%savecount == 0) save_generation(gen);
+        if (rank == 0 and gen%savecount == 0) save_generation(gen);
 
       }
 
-      if (verbose > 0) cout << "j-Swarm: run complete." << endl << endl;
+      if (rank == 0 and verbose > 0) cout << "j-Swarm: run complete." << endl << endl;
+
+    }
+
+    /// Collect all particles and related data to rank 0
+    void particle_swarm::collect_data()
+    {
+      #ifdef WITH_MPI
+
+        // Determine the size of temporary arrays
+        int size = (rank == 0 ? nprocs : 1);
+
+        // Collect the particles from all processes to rank 0
+        // This could be sped up using MPI_Gatherv if the array temporaries seem to be causing a bottleneck.
+        for (int i = 0; i < NP_per_rank; i++)
+        {
+          double local_lnlike[size];
+          double local_personal_best_value[size];
+          double local_x[size][nPar_total];
+          double local_v[size][nPar_total];
+          double local_personal_best_x[size][nPar_total];
+          GMPI::Comm().Gather(particles.at(i).lnlike, local_lnlike[0], 0);
+          GMPI::Comm().Gather(particles.at(i).personal_best_value, local_personal_best_value[0], 0);
+          GMPI::Comm().Gather(particles.at(i).x[0], local_x[0][0], nPar_total, 0);
+          GMPI::Comm().Gather(particles.at(i).v[0], local_v[0][0], nPar_total, 0);
+          GMPI::Comm().Gather(particles.at(i).personal_best_x[0], local_personal_best_x[0][0], nPar_total, 0);
+
+          if (rank == 0)
+          {
+            for (int j = 0; j < nprocs; j++)
+            {
+              particles_global.at(NP_per_rank * j + i).lnlike = local_lnlike[j];
+              particles_global.at(NP_per_rank * j + i).personal_best_value = local_personal_best_value[j];
+              for (int k = 0; k < nPar_total; k++)
+              {
+                particles_global.at(NP_per_rank * j + i).x.at(k) = local_x[j][k];
+                particles_global.at(NP_per_rank * j + i).v.at(k) = local_v[j][k];
+                particles_global.at(NP_per_rank * j + i).personal_best_x.at(k) = local_personal_best_x[j][k];
+              }
+            }
+          }
+        }
+
+        // Sum fcall from all processes
+        GMPI::Comm().Reduce(fcall, fcall_global, MPI_SUM, 0);
+
+        // Collect the global best fit across all processes
+        int global_best_rank;
+        std::vector<double> global_best_values(size);
+        GMPI::Comm().Gather(global_best_value, global_best_values[0], 0);
+        if (rank == 0)
+        {
+          auto max_it = std::max_element(global_best_values.begin(), global_best_values.end());
+          global_best_rank = std::distance(global_best_values.begin(), max_it);
+        }
+        GMPI::Comm().Bcast(global_best_rank, 1, 0);
+        GMPI::Comm().Bcast(global_best_value, 1, global_best_rank);
+        GMPI::Comm().Bcast(global_best_x[0], nPar_total, global_best_rank);
+
+      #else
+
+        fcall_global = fcall;
+        particles_global = particles;
+
+      #endif
 
     }
 
     /// Update a particle's velocity and use that to update its position
     void particle_swarm::update_particle(particle& p)
     {
-      if (adapt_omega) omega = p.x[omega_index];
+      if (adapt_omega) omega = p.x.at(omega_index);
       if (adapt_phi)
       {
-        phi1 = p.x[phi1_index];
-        phi2 = p.x[phi2_index];
+        phi1 = p.x.at(phi1_index);
+        phi2 = p.x.at(phi2_index);
       }
-      for (int i; i < nPar_total; i++)
+      for (int i = 0; i < nPar_total; i++)
       {
         double r1 = std::generate_canonical<double, 32>(rng);
         double r2 = std::generate_canonical<double, 32>(rng);
-        p.v[i] = omega*p.v[i] + phi1*r1*(p.personal_best_x[i]-p.x[i]) + phi2*r2*(global_best_x[i]-p.x[i]);
-        p.x[i] = p.x[i] + p.v[i];
+        p.v.at(i) = omega*p.v.at(i) + phi1*r1*(p.personal_best_x.at(i)-p.x.at(i)) + phi2*r2*(global_best_x.at(i)-p.x.at(i));
+        p.x.at(i) = p.x.at(i) + p.v.at(i);
       }
     }
 
@@ -284,7 +409,7 @@ namespace Gambit
       bool validVector = true;
       for (int i = 0; i < nPar_total; i++)
       {
-        if (p.x[i] < lowerbounds[i] or p.x[i] > upperbounds[i]) validVector = false;
+        if (p.x.at(i) < lowerbounds.at(i) or p.x.at(i) > upperbounds.at(i)) validVector = false;
       }
       // Return true immediately if it has a valid position, or false if it does not and the brick wall boundary condition is in use.
       if (validVector or bndry == 1) return validVector;
@@ -312,8 +437,9 @@ namespace Gambit
     /// Check whether the swarm has converged; note that this will fail if the lnlike is ever >= 0!
     bool particle_swarm::converged()
     {
+
       // Find the mean value of the personal best likelihoods
-      double current_mean = std::accumulate(particles.begin(), particles.end(), 0.0, [](int i, particle& p){return i+p.personal_best_value;})/NP;
+      double current_mean = std::accumulate(particles_global.begin(), particles_global.end(), 0.0, [](int i, particle& p){return i+p.personal_best_value;})/NP;
       // Find the fractional improvement between this generation and last generation
       double mean_ratio = current_mean/mean_lnlike;
       double fractional_diff = (mean_ratio <= 1.0) ? 1.0 - mean_ratio : 1.0;
@@ -436,15 +562,15 @@ namespace Gambit
       // Save the information about the last generation needed for resuming (and for tracking progress)
       std::ofstream lastgen;
       lastgen.open(path + ".lastgen");
-      lastgen << "# Number of calls to the objective function so far (int)" << endl << fcall << endl;
+      lastgen << "# Number of calls to the objective function so far (int)" << endl << fcall_global << endl;
       lastgen << "# Generation number (int)" << endl << gen << endl;
       lastgen << "# Global best fit achieved so far (double)" << endl << global_best_value << endl;
       lastgen << "# Location of global best fit achieved so far (" << nPar_total << " doubles)" << endl;
-      for (int i = 0; i < nPar_total; i++) lastgen << global_best_x[i] << " ";
+      for (int i = 0; i < nPar_total; i++) lastgen << global_best_x.at(i) << " ";
       lastgen << endl << "# Mean personal best lnlike in last generation (double)" << endl << mean_lnlike << endl;
       lastgen << "# Smoothed fractional improvement in mean personal best lnlike over last [convsteps] generations." << endl << sfim << endl;
       lastgen << "# Fractional improvements in mean personal best lnlike in last [convsteps] generations (" << convsteps << " doubles)" << endl;
-      for (int i = 0; i < convsteps; i++) lastgen << conv_progress[i] << " ";
+      for (int i = 0; i < convsteps; i++) lastgen << conv_progress.at(i) << " ";
       lastgen << endl << "# [NP] particles in last completed generation (" << NP
               << " x " << 2 + 3*nPar_total << " doubles {lnlike, personal best lnlike, "
               << nPar_total << " positions, " << nPar_total << " velocities, "
@@ -453,11 +579,11 @@ namespace Gambit
       lastgen << std::scientific;
       for (int i = 0; i < NP; i++)
       {
-        particle& p = particles[i];
+        particle& p = particles_global.at(i);
         lastgen << endl << p.lnlike << " " << p.personal_best_value;
-        for (int j = 0; j < nPar_total; j++) lastgen << " " << p.x[j];
-        for (int j = 0; j < nPar_total; j++) lastgen << " " << p.v[j];
-        for (int j = 0; j < nPar_total; j++) lastgen << " " << p.personal_best_x[j];
+        for (int j = 0; j < nPar_total; j++) lastgen << " " << p.x.at(j);
+        for (int j = 0; j < nPar_total; j++) lastgen << " " << p.v.at(j);
+        for (int j = 0; j < nPar_total; j++) lastgen << " " << p.personal_best_x.at(j);
       }
 
        // Add the full info about the current generation to the native output
@@ -474,18 +600,18 @@ namespace Gambit
         pfile << std::scientific;
         for (int i = 0; i < NP; i++)
         {
-          particle& p = particles[i];
+          particle& p = particles_global.at(i);
           pfile << endl << gen << "    " << p.lnlike << " ";
           if (discrete.empty())
           {
-            for (int j = 0; j < nPar_total; j++) pfile << " " << p.x[j];
+            for (int j = 0; j < nPar_total; j++) pfile << " " << p.x.at(j);
           }
           else
           {
             std::vector<double> true_x = p.discretised_x(discrete);
-            for (int j = 0; j < nPar_total; j++) pfile << " " << true_x[j];
+            for (int j = 0; j < nPar_total; j++) pfile << " " << true_x.at(j);
           }
-          for (int j = 0; j < nPar_total; j++) pfile << " " << p.v[j];
+          for (int j = 0; j < nPar_total; j++) pfile << " " << p.v.at(j);
         }
       }
     }
@@ -500,7 +626,8 @@ namespace Gambit
       lastgen.open(path + ".lastgen");
       // Read fcall
       lastgen.getline(line,len);
-      lastgen >> fcall;
+      lastgen >> fcall_global;
+      fcall = (rank == 0 ? fcall_global : 0);
       lastgen.getline(line,len);
       // Read generation number
       lastgen.getline(line,len);
@@ -513,7 +640,7 @@ namespace Gambit
       // Read position of global best-fit lnlike
       lastgen.getline(line,len);
       global_best_x.resize(nPar_total);
-      for (int i = 0; i < nPar_total; i++) lastgen >> global_best_x[i];
+      for (int i = 0; i < nPar_total; i++) lastgen >> global_best_x.at(i);
       lastgen.getline(line,len);
       // Read mean personal best lnlike for the current generation
       lastgen.getline(line,len);
@@ -526,21 +653,24 @@ namespace Gambit
       // Read fractional improvements in mean personal best lnlike during last [convsteps] generations
       conv_progress.resize(convsteps);
       lastgen.getline(line,len);
-      for (int i = 0; i < convsteps; i++) lastgen >> conv_progress[i];
+      for (int i = 0; i < convsteps; i++) lastgen >> conv_progress.at(i);
       lastgen.getline(line,len);
       // Read particle data
       lastgen.getline(line,len);
-      for (int i = 0; i < NP; i++)
+      for (int n = 0; n < NP; n++)
       {
-        particle& p = particles[i];
+        particle p(nPar_total, lowerbounds, upperbounds, rng);
         lastgen >> p.lnlike >> p.personal_best_value;
         p.x.resize(nPar_total);
         p.v.resize(nPar_total);
         p.personal_best_x.resize(nPar_total);
-        for (int j = 0; j < nPar_total; j++) lastgen >> p.x[j];
-        for (int j = 0; j < nPar_total; j++) lastgen >> p.v[j];
-        for (int j = 0; j < nPar_total; j++) lastgen >> p.personal_best_x[j];
+        for (int j = 0; j < nPar_total; j++) lastgen >> p.x.at(j);
+        for (int j = 0; j < nPar_total; j++) lastgen >> p.v.at(j);
+        for (int j = 0; j < nPar_total; j++) lastgen >> p.personal_best_x.at(j);
         lastgen.getline(line,len);
+        if (rank == 0) particles_global.at(n) = p;
+        int i = n - NP_per_rank * rank;
+        if (i >= 0 and i < NP_per_rank) particles.at(i) = p;
       }
       return gen;
     }
