@@ -75,13 +75,13 @@ namespace Gambit
     /// Return the root directory of GAMBIT.
     /// Useful for locating configuration files and other such things
     /// in a robust manner at runtime 
-    EXPORT_SYMBOLS std::string GAMBIT_root_dir();
+    EXPORT_SYMBOLS const std::string& GAMBIT_root_dir();
 
     /// Return the path to the build-time scratch directory
     /// bjf> There is stuff using this variable that is needed by ScannerBit at run time,
     /// not just build time, therefore it needs to be located using the function above
     //const str buildtime_scratch = GAMBIT_DIR "/scratch/build_time/";
-    EXPORT_SYMBOLS buildtime_scratch();
+    EXPORT_SYMBOLS const std::string& buildtime_scratch();
 
     /// Return the path the the run-specific scratch directory
     EXPORT_SYMBOLS const str& runtime_scratch();

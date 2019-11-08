@@ -56,10 +56,7 @@ namespace Gambit
         return val == NULL ? std::string("") : std::string(val);
     }
 
-    /// Return the root directory of GAMBIT.
-    /// Useful for locating configuration files and other such things
-    /// in a robust manner 
-    std::string GAMBIT_root_dir()
+    std::string get_GAMBIT_root_dir()
     {
        std::string root_dir;
        /// The initial assumption is that this is provided by CMake
@@ -81,11 +78,22 @@ namespace Gambit
           utils_error().raise(LOCAL_INFO, "Could not determine GAMBIT root directory! This should have been set by 'GAMBIT_RUN_DIR' at build time, however the value we found is empty. The environment variable GAMBIT_RUN_DIR is also not set. If you suspect that this is a bug in the build system then please report it.");
        }
        return root_dir;
+    }
+
+    /// Return the root directory of GAMBIT.
+    /// Useful for locating configuration files and other such things
+    /// in a robust manner 
+    const std::string& GAMBIT_root_dir()
+    {
+       static const std::string root_dir = get_GAMBIT_root_dir();
+       return root_dir;
+    }
 
     /// Return the path to the build-time scratch directory
-    EXPORT_SYMBOLS buildtime_scratch()
+    const str& buildtime_scratch()
     {
-       return GAMBIT_root_dir() + "/scratch/build_time/";
+       static const str path = GAMBIT_root_dir() + "/scratch/build_time/";
+       return path;
     }
 
     /// Return the path to the run-specific scratch directory

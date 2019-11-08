@@ -818,6 +818,8 @@ endif()
     towrite += "foreach (plugin ${SCANNERBIT_PLUGINS})\n"
     towrite += " "*4 + "add_dependencies(ScannerBit ${plugin})\n"
     towrite += "endforeach()\n"
+    towrite += "\n"
+    towrite += "add_subdirectory(python)\n" # To include scan_python and scan_boost_python targets, for pyScannerBit interface. 
 
     cmake = "./ScannerBit/CMakeLists.txt"
     candidate = build_dir+"/ScannerBit_CMakeLists.txt.candidate"
