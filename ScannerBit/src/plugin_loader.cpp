@@ -49,6 +49,9 @@ namespace Gambit
 
         namespace Plugins
         {
+            // Set the root directory relative to which we should search for various config files
+            static const std::string root_path(Utils::GAMBIT_root_dir());
+
             inline std::string print_plugins(std::map< std::string, std::map<std::string, std::vector<Plugin_Details> > >::const_iterator plugins)
             {
                 table_formatter table(plugins->first + " PLUGINS", "VERSION", "STATUS");
@@ -72,7 +75,7 @@ namespace Gambit
                 return table.str();
             }
 
-            Plugin_Loader::Plugin_Loader() : path(GAMBIT_DIR "/ScannerBit/lib/")
+            Plugin_Loader::Plugin_Loader() : path(root_path+"/ScannerBit/lib/")
             {
                 std::string p_str;
                 std::ifstream lib_list(path + "plugin_libraries.list");
@@ -101,15 +104,15 @@ namespace Gambit
 
                     //pclose(p_f);
 
-                    auto excluded_plugins = loadExcluded(GAMBIT_DIR "/scratch/scanbit_excluded_libs.yaml");
-                    const str linked_libs(GAMBIT_DIR "/scratch/scanbit_linked_libs.yaml");
-                    const str reqd_entries(GAMBIT_DIR "/scratch/scanbit_reqd_entries.yaml");
-                    const str flags(GAMBIT_DIR "/scratch/scanbit_flags.yaml");
+                    auto excluded_plugins = loadExcluded(Utils::buildtime_scratch()+"scanbit_excluded_libs.yaml");
+                    const str linked_libs(Utils::buildtime_scratch()+"scanbit_linked_libs.yaml");
+                    const str reqd_entries(Utils::buildtime_scratch()+"scanbit_reqd_entries.yaml");
+                    const str flags(Utils::buildtime_scratch()+"scanbit_flags.yaml");
                     process(linked_libs, reqd_entries, flags, excluded_plugins);
                 }
                 else
                 {
-                    scan_err << "Cannot open ./ScannerBit/lib/plugin_libraries.list" << scan_end;
+                    scan_err << "Cannot open "<<path<<"plugin_libraries.list" << scan_end;
                 }
             }
 
@@ -129,10 +132,31 @@ namespace Gambit
 
             void Plugin_Loader::process(const std::string& libFile, const std::string& plugFile, const std::string& flagFile, std::vector<Plugin_Details>& excluded_plugins)
             {
-                YAML::Node libNode = YAML::LoadFile(libFile);
-                YAML::Node plugNode = YAML::LoadFile(plugFile);
-                YAML::Node flagNode = YAML::LoadFile(flagFile);
-
+                YAML::Node libNode;
+                YAML::Node plugNode;
+                YAML::Node flagNode;
+                try {
+                    libNode = YAML::LoadFile(libFile);
+                } catch(const std::runtime_error& error) {
+                    std::stringstream msg;
+                    msg<<"Error loading config file for ScannerBit:'"<<libFile<<"'. Error message was: "<<error.what();
+                    throw std::runtime_error(msg.str());
+                }  
+                try {
+                    plugNode = YAML::LoadFile(plugFile);
+                } catch(const std::runtime_error& error) {
+                    std::stringstream msg;
+                    msg<<"Error loading config file for ScannerBit:'"<<plugFile<<"'. Error message was: "<<error.what();
+                    throw std::runtime_error(msg.str());
+                }  
+                try {
+                    flagNode = YAML::LoadFile(flagFile);
+                } catch(const std::runtime_error& error) {
+                    std::stringstream msg;
+                    msg<<"Error loading config file for ScannerBit:'"<<flagFile<<"'. Error message was: "<<error.what();
+                    throw std::runtime_error(msg.str());
+                }  
+ 
                 for (auto it = excluded_plugins.begin(), end = excluded_plugins.end(); it != end; it++)
                 {
                     if (is_new_plugin(total_plugin_map, *it))
@@ -159,8 +183,15 @@ namespace Gambit
             std::vector<Plugin_Details> Plugin_Loader::loadExcluded (const std::string& file)
             {
                 std::vector<Plugin_Details> excluded_plugins;
-                YAML::Node node = YAML::LoadFile(file);
-
+                YAML::Node node;
+                try { 
+                    node = YAML::LoadFile(file);
+                } catch(const std::runtime_error& error) {
+                    std::stringstream msg;
+                    msg<<"Error loading config file for ScannerBit:'"<<file<<"'. Error message was: "<<error.what();
+                    throw std::runtime_error(msg.str());
+                }  
+ 
                 if (node.IsMap())
                 {
                     for (auto it = node.begin(), end = node.end(); it != end; it++)
@@ -287,7 +318,15 @@ namespace Gambit
 
             std::vector<std::string> Plugin_Loader::list_prior_groups() const
             {
-                YAML::Node node = YAML::LoadFile(GAMBIT_DIR "/config/priors.dat");
+                YAML::Node node;
+                try {
+                    node = YAML::LoadFile(root_path+"/config/priors.dat");
+                } catch(const std::runtime_error& error) {
+                    std::stringstream msg;
+                    msg<<"Error loading config file for ScannerBit:'"<<root_path+"/config/priors.dat"<<"'. Error message was: "<<error.what();
+                    throw std::runtime_error(msg.str());
+                }
+
                 std::vector<std::string> vec;
 
                 for(auto &&n : node)
@@ -303,7 +342,14 @@ namespace Gambit
 
             std::string Plugin_Loader::print_priors(const std::string &prior_group) const
             {
-                YAML::Node node = YAML::LoadFile(GAMBIT_DIR "/config/priors.dat");
+                YAML::Node node;
+                try {
+                    node = YAML::LoadFile(root_path+"/config/priors.dat");
+                } catch(const std::runtime_error& error) {
+                    std::stringstream msg;
+                    msg<<"Error loading config file for ScannerBit:'"<<root_path+"/config/priors.dat"<<"'. Error message was: "<<error.what();
+                    throw std::runtime_error(msg.str());
+                }  
                 std::stringstream out;
 
                 if (prior_group == "priors")

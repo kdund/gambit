@@ -29,6 +29,7 @@
 #include <cmath>
 
 #include "gambit/Utils/util_types.hpp"
+#include "gambit/cmake/cmake_variables.hpp"
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -68,6 +69,22 @@ namespace Gambit
 
   namespace Utils
   {
+    /// Get an environment variable, or "" if the variable is not set
+    std::string getEnvVar(std::string const & key );
+
+    /// Return the root directory of GAMBIT.
+    /// Useful for locating configuration files and other such things
+    /// in a robust manner at runtime 
+    EXPORT_SYMBOLS const std::string& GAMBIT_root_dir();
+
+    /// Return the path to the build-time scratch directory
+    /// bjf> There is stuff using this variable that is needed by ScannerBit at run time,
+    /// not just build time, therefore it needs to be located using the function above
+    //const str buildtime_scratch = GAMBIT_DIR "/scratch/build_time/";
+    EXPORT_SYMBOLS const std::string& buildtime_scratch();
+
+    /// Return the path the the run-specific scratch directory
+    EXPORT_SYMBOLS const str& runtime_scratch();
 
     /// Split a string into a vector of strings, using a delimiter,
     /// and removing any whitespace around the delimiter.
@@ -101,6 +118,9 @@ namespace Gambit
     /// Perform a (possibly) case-insensitive string comparison
     EXPORT_SYMBOLS bool iequals(const std::string& a, const std::string& b, bool case_sensitive=false);
 
+    /// Split string into vector of strings, using a delimiter string
+    EXPORT_SYMBOLS std::vector<std::string> split(const std::string& input, const std::string& delimiter);
+    
     /************************************************************************/
     /* Comparator for case-insensitive comparison in STL assos. containers  */
     /************************************************************************/
@@ -122,7 +142,7 @@ namespace Gambit
       }
     };
 
-    
+
     /// Get pointers to beginning and end of array.
     // Useful for initialising vectors with arrays, e.g.
     //   int vv[] = { 12,43 };

@@ -79,8 +79,14 @@ macro(retrieve_bits bits root excludes quiet)
   file(GLOB children RELATIVE ${root} ${root}/*Bit*)
 
   foreach(child ${children})
+    file(GLOB_RECURSE src RELATIVE ${root}/${child} ${root}/${child}/src/*.c
+                                                    ${root}/${child}/src/*.cc
+                                                    ${root}/${child}/src/*.cpp)
+    file(GLOB_RECURSE hdr RELATIVE ${root}/${child} ${root}/${child}/include/*.h
+                                                    ${root}/${child}/include/*.hh
+                                                    ${root}/${child}/include/*.hpp)
     string(FIND ${child} ".dSYM" FOUND_DSYM)
-    if(IS_DIRECTORY ${root}/${child} AND ${FOUND_DSYM} EQUAL -1)
+    if(IS_DIRECTORY ${root}/${child} AND (src OR hdr) AND ${FOUND_DSYM} EQUAL -1)
 
       # Work out if this Bit should be excluded or not.  Never exclude ScannerBit.
       set(excluded "NO")
@@ -235,8 +241,8 @@ macro(add_gambit_custom target filename HARVESTER DEPS)
                      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                      DEPENDS ${${HARVESTER}}
                              ${HARVEST_TOOLS}
-                             ${PROJECT_BINARY_DIR}/CMakeCache.txt
-                             ${${DEPS}})
+                             ${${DEPS}}
+                             ${CMAKE_CACHEFILE_DIR}/CMakeCache.txt)
   add_custom_target(${target} DEPENDS ${CMAKE_BINARY_DIR}/${filename})
 endmacro()
 
@@ -328,7 +334,7 @@ function(add_gambit_executable executablename LIBRARIES)
     target_link_libraries(${executablename} PRIVATE ${LIBRARIES} yaml-cpp ${gambit_preload_LDFLAGS})
   endif()
 
-  add_dependencies(${executablename} mkpath)
+  add_dependencies(${executablename} mkpath gambit_preload)
 
   #For checking if all the needed libs are present.  Never add them manually with -lsomelib!!
   if(VERBOSE)
@@ -393,7 +399,7 @@ function(add_standalone executablename)
                        DEPENDS modules_harvested
                                ${STANDALONE_FACILITATOR}
                                ${HARVEST_TOOLS}
-                               ${PROJECT_BINARY_DIR}/CMakeCache.txt)
+                               ${CMAKE_CACHEFILE_DIR}/CMakeCache.txt)
 
     # Add linking flags for ROOT, RestFrames and/or HepMC if required.
     if (USES_COLLIDERBIT)

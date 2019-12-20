@@ -71,11 +71,11 @@ namespace Gambit
                         {
                             factory = new scanpy::python_factory(func_obj, printer);
                         }
-                        else if (pytype(func_obj) == "dict")
+                        else if (py::isinstance<py::dict>(func_obj))
                         {
                             for (auto &&func : py::cast<py::dict>(func_obj))
                             {
-                                if (pytype(func.first) != "str")
+                                if (not py::isinstance<py::str>(func.first))
                                 {
                                     throw std::runtime_error("Inputted purpose is not a \'str\'");
                                 }
@@ -94,16 +94,20 @@ namespace Gambit
                             prior = new scanpy::python_prior(prior_obj);
                         }
                         
-                        if (pytype(file_obj) == "str")
+                        if (py::isinstance<py::str>(file_obj))
                         {
                             std::string filename = pyconvert<std::string>(file_obj);
                         
                             return gambit_scan.run_scan_str(&filename, factory, prior, !restart);
                         }
-                        else if (pytype(file_obj) == "dict")
+                        else if (py::isinstance<py::dict>(file_obj))
                         {
                             YAML::Node node = pyyamlconvert(file_obj);
-                            
+
+                            std::cerr<<"DEBUG: Result of dict -> yaml conversion:"<<std::endl;
+                            std::cerr<<"-----------------"<<std::endl;
+                            std::cerr<<node<<std::endl;
+
                             return gambit_scan.run_scan_node(&node, factory, prior, !restart);
                         }
                         else
@@ -170,7 +174,13 @@ PYBIND11_MODULE(ScannerBit, m)
         {
             in.main_printer(map);
         });
-    
+
+    #ifdef WITH_MPI 
+    m.attr("WITH_MPI") = true;
+    #else
+    m.attr("WITH_MPI") = false;  
+    #endif
+
     m.def("print", &scanpy::scan::print);
         
     m.def("ensure_size", &scanpy::ensure_size_vec);

@@ -11,6 +11,8 @@ sys.setdlopenflags(flags | ctypes.RTLD_GLOBAL)
 #       python environment variable "PYTHONPATH".
 import ScannerBit as scan 
 
+print("WITH_MPI=",scan.WITH_MPI) # Test if ScannerBit was compiled with MPI enabled
+
 # define likelihood, technically optional
 def like(m):
     a = m["model1::x"]
@@ -29,7 +31,61 @@ def prior(vec, map):
 myscan = scan.scan(True)
 
 # run scan
-myscan.run(inifile="ScannerBit.yaml", lnlike={"LogLike": like}, prior=prior, restart=True)
+#myscan.run(inifile="ScannerBit.yaml", lnlike={"LogLike": like}, prior=prior, restart=True)
+
+# Run scan from dict instead of YAML file
+settings = {
+"Parameters": {
+  "model1": {
+    "x": None,
+    }
+  },
+"Priors": {
+  "x_prior": {
+    "prior_type": 'flat',
+    "parameters": ['model1::x'],
+    "range": [1.0, 40.0],
+    }
+  },
+"Printer": {
+  "printer": "hdf5",
+  "options": {
+    "output_file": "results.hdf5",
+    "group": "/",
+    "delete_file_on_restart": "true",
+    }
+  },
+"Scanner": {
+  "scanners": {
+    "twalk": {
+      "plugin": "twalk",
+      "like": "LogLike",
+      "tolerance": 1.003,
+      "kwalk_ratio": 0.9,
+      "projection_dimension": 4
+      }
+    },    
+  "use_scanner": "twalk",
+  "objectives": {
+    "gaussian": {
+      "plugin": "gaussian",
+      "purpose": "LogLike",
+      "parameters": {
+        "param...20": None,
+        "range": [-5, 5]
+        }
+      }
+    }
+  },
+"KeyValues": {
+  "default_output_path": "pyscannerbit_run_data/",
+  "likelihood": {
+    "model_invalid_for_lnlike_below": -1e6
+    }
+  }
+}
+
+myscan.run(inifile=settings, lnlike={"LogLike": like}, prior=prior, restart=True)
 
 ###
 ### can run diagnostics

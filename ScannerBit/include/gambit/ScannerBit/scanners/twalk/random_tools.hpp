@@ -837,6 +837,7 @@ public:
         rotVec = matrix <double> (nin, nin);
         RandRot();
         if (proj > num) proj = num;
+        // TODO: Greg, why no sanity checking? proj=0 crashes this code due to mod 0. 
         extra = num % proj;
         endVec = currentVec + num - extra;
         endEndVec = currentVec + num;

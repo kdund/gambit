@@ -26,6 +26,7 @@
 #include <cctype>  // ::tolower function
 #include <sstream> // stringstream
 #include <string>  // string
+#include <cstdlib> // environment variable handling
 
 /// POSIX filesystem libraries
 #include <stdio.h>
@@ -33,10 +34,16 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <libgen.h>
+#include <unistd.h>
 
 /// Gambit
 #include "gambit/Utils/util_functions.hpp"
+#include "gambit/cmake/cmake_variables.hpp"
+#include "gambit/Utils/mpiwrapper.hpp"
 
+/// Boost
+#include <boost/algorithm/string/iter_find.hpp>
+#include <boost/algorithm/string/finder.hpp>
 
 namespace Gambit
 {
@@ -45,6 +52,65 @@ namespace Gambit
   {
 
     const char* whitespaces[] = {" ", "\t", "\n", "\f", "\r"};
+
+    /// Get an environment variable, or "" if the variable is not set
+    std::string getEnvVar( std::string const & key )
+    {
+        char * val = std::getenv( key.c_str() );
+        return val == NULL ? std::string("") : std::string(val);
+    }
+
+    std::string get_GAMBIT_root_dir()
+    {
+       std::string root_dir;
+       /// The initial assumption is that this is provided by CMake
+       /// via the GAMBIT_RUN_DIR variable
+       /// However, in situations where GAMBIT is built in some
+       /// temporary directory and then moved (as occurs in the
+       /// pip installation of pyScannerBit), then we need to
+       /// locate the root directory via an environment variable
+       /// at runtime instead. If this environment variable is set
+       /// then it will override the value set at build time.
+       root_dir = getEnvVar("GAMBIT_RUN_DIR");
+       if(root_dir==std::string(""))
+       {
+          root_dir = GAMBIT_RUN_DIR;
+       }
+
+       if(root_dir==std::string(""))
+       {
+          utils_error().raise(LOCAL_INFO, "Could not determine GAMBIT root directory! This should have been set by 'GAMBIT_RUN_DIR' at build time, however the value we found is empty. The environment variable GAMBIT_RUN_DIR is also not set. If you suspect that this is a bug in the build system then please report it.");
+       }
+       return root_dir;
+    }
+
+    /// Return the root directory of GAMBIT.
+    /// Useful for locating configuration files and other such things
+    /// in a robust manner 
+    const std::string& GAMBIT_root_dir()
+    {
+       static const std::string root_dir = get_GAMBIT_root_dir();
+       return root_dir;
+    }
+
+    /// Return the path to the build-time scratch directory
+    const str& buildtime_scratch()
+    {
+       static const str path = GAMBIT_root_dir() + "/scratch/build_time/";
+       return path;
+    }
+
+    /// Return the path to the run-specific scratch directory
+    const str& runtime_scratch()
+    {
+      #ifdef WITH_MPI
+        static const str master_procID = std::to_string(GMPI::Comm().MasterPID());
+      #else
+        static const str master_procID = std::to_string(getpid());
+      #endif
+      static const str path = ensure_path_exists(GAMBIT_root_dir() + "/scratch/run_time/machine_" + std::to_string(gethostid()) + "/master_process_" + master_procID + "/");
+      return path;
+    }
 
     /// Split a string into a vector of strings using a delimiter,
     /// and remove any whitespace around the delimiters.
@@ -198,6 +264,15 @@ namespace Gambit
                 return false;
         return true;
     }
+
+    /// Split string into vector of strings, using a delimiter string
+    std::vector<std::string> split(const std::string& input, const std::string& delimiter)
+    {
+        std::vector<std::string> result;
+        boost::iter_split(result, input, boost::algorithm::first_finder(delimiter));
+        return result;
+    }
+
 
     /// Ensure that a path exists (and then return the path, for chaining purposes)
     const std::string& ensure_path_exists(const std::string& path)
@@ -394,7 +469,7 @@ namespace Gambit
           }
           else
           {
-             if (tolower(prefix[i]) != tolower(str[i])) return false; 
+             if (tolower(prefix[i]) != tolower(str[i])) return false;
           }
       }
       return true;

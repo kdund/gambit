@@ -11,10 +11,17 @@ Parameters:
 
   model1:
     x:
-      range: [-10, 10]
-
+    y:
 
 Priors:
+    x_prior: 
+        prior_type: 'flat' 
+        parameters: ['model1::x']
+        range: [1.0, 40.0]
+    y_prior: 
+        prior_type: 'flat' 
+        parameters: ['model1::y']
+        range: [1.0, 40.0]
 
   # None -- we're using ScannerBit's built-in objective functions in this example
 
