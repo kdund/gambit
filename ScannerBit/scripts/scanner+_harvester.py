@@ -693,7 +693,19 @@ set ({0}_plugin_lib_paths_{1}""".format(plug_type[i], directory)
 """
 
             towrite += """
-if (${{CMAKE_SYSTEM_NAME}} MATCHES \"Darwin\")
+if (${{CMAKE_SYSTEM_NAME}} MATCHES \"Darwin\")""".format()
+            if plug_type[i] in scanbit_link_libs:
+                if directory in scanbit_link_libs[plug_type[i]]:
+                    unique_libdirs = set(p[1] for p in scanbit_link_libs[plug_type[i]][directory])
+                    if unique_libdirs:
+                        for libdir in unique_libdirs:
+                            towrite += """
+    execute_process(RESULT_VARIABLE result 
+                    COMMAND ${{CMAKE_INSTALL_NAME_TOOL}} -id \"{0}\" {1} 
+                    WORKING_DIRECTORY ${{PROJECT_SOURCE_DIR}}
+    )
+    """.format("@rpath/" + libdir.split("/")[-1], libdir)
+            towrite += """
     set ({0}_plugin_rpath_{1}""".format(plug_type[i], directory)
             if plug_type[i] in scanbit_libs:
                 if directory in scanbit_libs[plug_type[i]]:
@@ -701,7 +713,7 @@ if (${{CMAKE_SYSTEM_NAME}} MATCHES \"Darwin\")
                     if unique_libdirs:
                         for libdir in unique_libdirs:
                             towrite += """
-                {0}""".format(libdir)
+                @loader_path/../../ScannerBit/{0}""".format(libdir.split("ScannerBit/")[-1])
             towrite += """
     )
 else()
