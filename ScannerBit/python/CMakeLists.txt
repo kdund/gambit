@@ -87,6 +87,7 @@ if(PYTHONINTERP_FOUND)# AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
     set(scan_module_libraries
         #${PYTHON_LIBRARIES}
         yaml-cpp
+	${OpenMP_omp_LIBRARY}
     )
     
      set(scan_module_include_dirs

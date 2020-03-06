@@ -620,7 +620,8 @@ endif()
 
 set( reqd_lib_output )
 set( exclude_lib_output )
-set( PLUGIN_COMPILE_FLAGS \"${BACKEND_CXX_FLAGS}\")\n
+set( PLUGIN_COMPILE_FLAGS \"${BACKEND_CXX_FLAGS} ${OpenMP_CXX_FLAGS}\")
+
 if(MPI_C_FOUND)
     set( PLUGIN_COMPILE_FLAGS \"${PLUGIN_COMPILE_FLAGS} ${MPI_C_COMPILE_FLAGS}\" )
     set( PLUGIN_COMPILE_DIRECTORIES
