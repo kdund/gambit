@@ -89,7 +89,7 @@ namespace Gambit
                             factory = new scanpy::python_factory(func_obj, printer);
                         }
                         
-                        if (PyCallable_Check(prior_obj.ptr()))
+                        if (!py::isinstance<py::none>(prior_obj) && PyCallable_Check(prior_obj.ptr()))
                         {
                             prior = new scanpy::python_prior(prior_obj);
                         }
@@ -104,9 +104,9 @@ namespace Gambit
                         {
                             YAML::Node node = pyyamlconvert(file_obj);
 
-                            std::cerr<<"DEBUG: Result of dict -> yaml conversion:"<<std::endl;
-                            std::cerr<<"-----------------"<<std::endl;
-                            std::cerr<<node<<std::endl;
+                            //std::cerr<<"DEBUG: Result of dict -> yaml conversion:"<<std::endl;
+                            //std::cerr<<"-----------------"<<std::endl;
+                            //std::cerr<<node<<std::endl;
 
                             return gambit_scan.run_scan_node(&node, factory, prior, !restart);
                         }
@@ -157,7 +157,7 @@ PYBIND11_MODULE(ScannerBit, m)
     
     py::class_<scanpy::scan>(m, "scan")
         .def(py::init<bool>())
-        .def("run", &scanpy::scan::run, py::arg("inifile"), py::arg("lnlike")="", py::arg("prior")="", py::arg("restart")=false)
+        .def("run", &scanpy::scan::run, py::arg("inifile"), py::arg("lnlike")="", py::arg("prior")=py::none(), py::arg("restart")=false)
         .def("diagnostics", &scanpy::scan::dianostic)
         .def("get_printer", &scanpy::scan::get_printer);
         

@@ -31,7 +31,7 @@ def prior(vec, map):
 myscan = scan.scan(True)
 
 # run scan
-#myscan.run(inifile="ScannerBit.yaml", lnlike={"LogLike": like}, prior=prior, restart=True)
+# myscan.run(inifile="ScannerBit.yaml", lnlike={"LogLike": like}, prior=prior, restart=True)
 
 # Run scan from dict instead of YAML file
 settings = {
@@ -52,7 +52,7 @@ settings = {
   "options": {
     "output_file": "results.hdf5",
     "group": "/",
-    "delete_file_on_restart": "true",
+    "delete_file_on_restart": True,
     }
   },
 "Scanner": {

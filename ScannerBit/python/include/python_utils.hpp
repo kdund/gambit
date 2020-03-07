@@ -54,29 +54,25 @@ namespace Gambit
                     }
                     
                 }
-                else if (py::isinstance<py::float_>(o))
+                else if (py::isinstance<py::bool_>(o))
                 {
-                    node = pyconvert<double>(o);
+                    node = pyconvert<bool>(o);
                 }
                 else if (py::isinstance<py::int_>(o))
                 {
                     node = pyconvert<int>(o);
                 }
+                else if (py::isinstance<py::float_>(o))
+                {
+                    node = pyconvert<double>(o);
+                }
                 else if (py::isinstance<py::str>(o))
                 {
                     node = pyconvert<std::string>(o);
                 }
-                else if(py::str(o).is(py::str(Py_True)))
-                { 
-                    node = YAML::Load("true");
-                }
-                else if(py::str(o).is(py::str(Py_False)))
-                {
-                    node = YAML::Load("false");
-                }
                 else if (py::isinstance<py::none>(o))
                 {
-                    node = YAML::Load(""); // Needs to be a Null node, not just an empty node (YAML::NodeType::Null)
+                    node = YAML::Node(); // Needs to be a Null node, not just an empty node (YAML::NodeType::Null)
                 }
                 else
                 {
