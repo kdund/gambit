@@ -8,6 +8,7 @@
 #include <dlfcn.h>
 #include <memory>
 #include <regex>
+#include <tuple>
 #ifdef WITH_HDF5
     #include <hdf5.h>
     #include <hdf5_hl.h>
@@ -208,6 +209,32 @@ PYBIND11_MODULE(ScannerBit, m)
             throw std::runtime_error("check_hdf5_version: internal hdf5 version error");
         }
 #endif
+    });
+    
+    m.def("get_hdf5_version", [&]()
+    {
+        unsigned int major=0, minor=0, patch=0;
+#ifdef WITH_HDF5
+        std::string name = "INFO:" H5_VERSION;
+        std::smatch m;
+        std::regex e ("^INFO:([0-9]+)\\.([0-9]+)\\.([0-9]+)(-patch([0-9]+))?");
+        
+        if (std::regex_match (name,m,e))
+        {
+            if (m.size() < 4)
+                std::runtime_error("get_hdf5_version: internal hdf5 version error");
+            
+            std::stringstream(m[1]) >> major;
+            std::stringstream(m[2]) >> minor;
+            std::stringstream(m[3]) >> patch;
+            return std::make_tuple(major, minor, patch);
+        }
+        else
+        {
+            throw std::runtime_error("get_hdf5_version: internal hdf5 version error");
+        }
+#endif
+        return std::make_tuple(major, minor, patch);
     });
     
     m.def("print", &scanpy::scan::print);

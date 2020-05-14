@@ -33,6 +33,8 @@ if(PYTHONINTERP_FOUND)# AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
         ${mkpath_INCLUDE_DIR}
         ${MPI_C_INCLUDE_PATH}
         ${MPI_CXX_INCLUDE_PATH}
+        ${HDF5_INCLUDE_DIR}
+        ${HDF5_INCLUDE_DIRS}
         ${yaml_INCLUDE_DIR}
         ${PYTHON_INCLUDE_DIRS}
         ${PROJECT_SOURCE_DIR}/ScannerBit/include
@@ -107,6 +109,8 @@ if(PYTHONINTERP_FOUND)# AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
         ${mkpath_INCLUDE_DIR}
         ${MPI_C_INCLUDE_PATH}
         ${MPI_CXX_INCLUDE_PATH}
+        ${HDF5_INCLUDE_DIR}
+        ${HDF5_INCLUDE_DIRS}
         ${PROJECT_SOURCE_DIR}/contrib/pybind11/include
         ${yaml_INCLUDE_DIR}
         ${PYTHON_INCLUDE_DIRS}
