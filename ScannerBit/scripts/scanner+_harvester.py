@@ -772,7 +772,7 @@ set ({0}_plugin_found_incs_{1} \"\")
                 if directory in scanbit_incs[plug_type[i]]:
                     for inc in scanbit_incs[plug_type[i]][directory]:
                         towrite += """
-set ({0}_plugin_found_incs_{1} \"${{{0}_plugin_found_incs_{1}}}"    \\\"{0}_locations.yaml\\\": {2}\\n\")
+set ({0}_plugin_found_incs_{1} \"${{{0}_plugin_found_incs_{1}}}    \\\"{0}_locations.yaml\\\": {2}\\n\")
 """.format(plug_type[i], directory, inc)
             if plug_type[i] in scanbit_inc_files:
                 if directory in scanbit_inc_files[plug_type[i]]:

@@ -51,11 +51,14 @@
 #ifdef HAVE_PYBIND11
   namespace pybind11
   {
-    class module;
+    //class module;
     class scoped_interpreter;
   }
 #endif
 
+#ifdef HAVE_PYBIND11
+#include <pybind11/pybind11.h>
+#endif
 
 namespace Gambit
 {
