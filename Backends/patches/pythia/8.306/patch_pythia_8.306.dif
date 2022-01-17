@@ -101,22 +101,78 @@ diff -rupN pythia8306_original/include/Pythia8/GAMBIT_hepmc_writer.h pythia8306_
 +}
 +
 +#endif // Pythia8_GAMBIT_hepmc_writer_H
+diff -rupN pythia8306_original/include/Pythia8/PartonDistributions.h pythia8306_patched/include/Pythia8/PartonDistributions.h
+--- pythia8306_original/include/Pythia8/PartonDistributions.h	2021-06-29 16:10:32.000000000 +0200
++++ pythia8306_patched/include/Pythia8/PartonDistributions.h	2022-01-17 16:21:47.000000000 +0100
+@@ -383,7 +383,7 @@ public:
+ 
+   // Constructor.
+   MSTWpdf(int idBeamIn = 2212, int iFitIn = 1,
+-    string pdfdataPath = "../share/Pythia8/pdfdata/", Info* infoPtr = 0)
++    string pdfdataPath = "../pdfdata/", Info* infoPtr = 0)
+     : PDF(idBeamIn), iFit(), alphaSorder(), alphaSnfmax(), mCharm(), mBottom(),
+     alphaSQ0(), alphaSMZ(), distance(), tolerance(), xx(), qq(),
+     c() {init( iFitIn,  pdfdataPath, infoPtr);}
+@@ -452,7 +452,7 @@ public:
+ 
+   // Constructor.
+   CTEQ6pdf(int idBeamIn = 2212, int iFitIn = 1, double rescaleIn = 1.,
+-    string pdfdataPath = "../share/Pythia8/pdfdata/", Info* infoPtr = 0)
++    string pdfdataPath = "../pdfdata/", Info* infoPtr = 0)
+     : PDF(idBeamIn), doExtraPol(false), iFit(), order(), nQuark(), nfMx(),
+     mxVal(), nX(), nT(), nG(), iGridX(), iGridQ(), iGridLX(), iGridLQ(),
+     rescale(rescaleIn), lambda(), mQ(), qIni(), qMax(), tv(), xMin(), xv(),
+@@ -603,7 +603,7 @@ public:
+ 
+   // Constructor.
+  PomH1FitAB(int idBeamIn = 990, int iFit = 1, double rescaleIn = 1.,
+-   string pdfdataPath = "../share/Pythia8/pdfdata/", Info* infoPtr = 0)
++   string pdfdataPath = "../pdfdata/", Info* infoPtr = 0)
+    : PDF(idBeamIn), doExtraPol(false), nx(), nQ2(), rescale(rescaleIn), xlow(),
+     xupp(), dx(), Q2low(), Q2upp(), dQ2(), gluonGrid(), quarkGrid()
+     { init( iFit, pdfdataPath, infoPtr); }
+@@ -650,7 +650,7 @@ public:
+ 
+   // Constructor.
+   PomH1Jets(int idBeamIn = 990, int iFit = 1, double rescaleIn = 1.,
+-    string pdfdataPath = "../share/Pythia8/pdfdata/", Info* infoPtr = 0)
++    string pdfdataPath = "../pdfdata/", Info* infoPtr = 0)
+     : PDF(idBeamIn), doExtraPol(false), rescale(rescaleIn), xGrid(), Q2Grid(),
+     gluonGrid(), singletGrid(), charmGrid()
+     {init( iFit, pdfdataPath, infoPtr);}
+diff -rupN pythia8306_original/include/Pythia8/ProcessLevel.h pythia8306_patched/include/Pythia8/ProcessLevel.h
+--- pythia8306_original/include/Pythia8/ProcessLevel.h	2021-06-29 16:10:32.000000000 +0200
++++ pythia8306_patched/include/Pythia8/ProcessLevel.h	2022-01-17 16:12:14.000000000 +0100
+@@ -45,7 +45,7 @@ public:
+ 
+   // Initialization.
+   bool init(bool doLHAin, SLHAinterface* slhaInterfacePtrIn,
+-    vector<SigmaProcess*>& sigmaPtrs, vector<PhaseSpace*>& phaseSpacePtrs);
++    vector<SigmaProcess*>& sigmaPtrs, vector<PhaseSpace*>& phaseSpacePtrs, ostream& os = cout);
+ 
+   // Store or replace Les Houches pointer.
+   void setLHAPtr( LHAupPtr lhaUpPtrIn) {lhaUpPtr = lhaUpPtrIn;
 diff -rupN pythia8306_original/include/Pythia8/Pythia.h pythia8306_patched/include/Pythia8/Pythia.h
 --- pythia8306_original/include/Pythia8/Pythia.h	2021-06-29 16:10:32.000000000 +0200
-+++ pythia8306_patched/include/Pythia8/Pythia.h	2022-01-07 23:07:05.000000000 +0100
-@@ -73,6 +73,12 @@ public:
++++ pythia8306_patched/include/Pythia8/Pythia.h	2022-01-17 16:03:59.000000000 +0100
+@@ -73,7 +73,7 @@ public:
    // object instead of XML files (to speed up multiple initialisations).
    Pythia(Settings& settingsIn, ParticleData& particleDataIn,
      bool printBanner = true);
+-
 +  
-+  // GAMBIT patch
-+  // This is silly, but needed for compatibility with the interface to Pythia 8.212
-+  // If this is removed, a change to the corresponding call in ColliderBit is needed
-+  Pythia(ParticleData& particleDataIn, Settings& settingsIn,
-+         bool printBanner = true) : Pythia(settingsIn, particleDataIn, printBanner);
- 
    // Constructor taking input from streams instead of files.
    Pythia( istream& settingsStrings, istream& particleDataStrings,
+     bool printBanner = true);
+@@ -196,7 +196,7 @@ public:
+     { partonVertexPtr = partonVertexPtrIn; return true;}
+ 
+   // Initialize.
+-  bool init();
++  bool init(ostream& os = cout);
+ 
+   // Generate the next event.
+   bool next();
 diff -rupN pythia8306_original/include/Pythia8/SusyLesHouches.h pythia8306_patched/include/Pythia8/SusyLesHouches.h
 --- pythia8306_original/include/Pythia8/SusyLesHouches.h	2021-06-29 16:10:32.000000000 +0200
 +++ pythia8306_patched/include/Pythia8/SusyLesHouches.h	2022-01-04 19:14:22.000000000 +0100
@@ -5651,7 +5707,7 @@ diff -rupN pythia8306_original/src/JetMatching.cc pythia8306_patched/src/JetMatc
 +} // end namespace Pythia8
 diff -rupN pythia8306_original/src/ProcessLevel.cc pythia8306_patched/src/ProcessLevel.cc
 --- pythia8306_original/src/ProcessLevel.cc	2021-06-29 16:10:32.000000000 +0200
-+++ pythia8306_patched/src/ProcessLevel.cc	2022-01-05 09:51:06.000000000 +0100
++++ pythia8306_patched/src/ProcessLevel.cc	2022-01-17 16:11:54.000000000 +0100
 @@ -7,6 +7,21 @@
  
  #include "Pythia8/ProcessLevel.h"
@@ -5674,6 +5730,15 @@ diff -rupN pythia8306_original/src/ProcessLevel.cc pythia8306_patched/src/Proces
  namespace Pythia8 {
  
  //==========================================================================
+@@ -42,7 +57,7 @@ ProcessLevel::~ProcessLevel() {
+ // Main routine to initialize generation process.
+ 
+ bool ProcessLevel::init( bool doLHA, SLHAinterface* slhaInterfacePtrIn,
+-  vector<SigmaProcess*>& sigmaPtrs, vector<PhaseSpace*>& phaseSpacePtrs) {
++  vector<SigmaProcess*>& sigmaPtrs, vector<PhaseSpace*>& phaseSpacePtrs, ostream& os) {
+ 
+   // Store other input pointers.
+   slhaInterfacePtr = slhaInterfacePtrIn;
 @@ -192,10 +207,30 @@ bool ProcessLevel::init( bool doLHA, SLH
        ++numberOn;
  
@@ -5708,6 +5773,15 @@ diff -rupN pythia8306_original/src/ProcessLevel.cc pythia8306_patched/src/Proces
    // Option to pick a second hard interaction: repeat as above.
    int number2On = 0;
    if (doSecondHard) {
+@@ -226,7 +261,7 @@ bool ProcessLevel::init( bool doLHA, SLH
+     string pad( max( 0, 51 - int(collision.length())), ' ');
+ 
+     // Print initialization information: header.
+-    cout << "\n *-------  PYTHIA Process Initialization  ---------"
++    os << "\n *-------  PYTHIA Process Initialization  ---------"
+          << "-----------------*\n"
+          << " |                                                   "
+          << "               |\n"
 @@ -295,12 +330,14 @@ bool ProcessLevel::init( bool doLHA, SLH
           <<"-------------*" << endl;
    }
@@ -5754,6 +5828,27 @@ diff -rupN pythia8306_original/src/ProcessLevel.cc pythia8306_patched/src/Proces
  
      // Update sum of maxima if current maximum violated.
      if (containerPtrs[iContainer]->newSigmaMax()) {
+diff -rupN pythia8306_original/src/Pythia.cc pythia8306_patched/src/Pythia.cc
+--- pythia8306_original/src/Pythia.cc	2021-06-29 16:10:32.000000000 +0200
++++ pythia8306_patched/src/Pythia.cc	2022-01-17 16:06:42.000000000 +0100
+@@ -469,7 +469,7 @@ bool Pythia::setPDFBPtr( PDFPtr pdfBPtrI
+ 
+ // Routine to initialize with the variable values of the Beams kind.
+ 
+-bool Pythia::init() {
++bool Pythia::init(ostream& os) {
+ 
+   // Check that constructor worked.
+   if (!isConstructed) {
+@@ -1021,7 +1021,7 @@ bool Pythia::init() {
+   // Send info/pointers to process level for initialization.
+   if ( doProcessLevel ) {
+     sigmaTot.init();
+-    if (!processLevel.init(doLHA, &slhaInterface, sigmaPtrs, phaseSpacePtrs)) {
++    if (!processLevel.init(doLHA, &slhaInterface, sigmaPtrs, phaseSpacePtrs, os)) {
+       infoPrivate.errorMsg("Abort from Pythia::init: "
+         "processLevel initialization failed");
+       return false;
 diff -rupN pythia8306_original/src/ResonanceDecays.cc pythia8306_patched/src/ResonanceDecays.cc
 --- pythia8306_original/src/ResonanceDecays.cc	2021-06-29 16:10:32.000000000 +0200
 +++ pythia8306_patched/src/ResonanceDecays.cc	2022-01-04 20:07:17.000000000 +0100

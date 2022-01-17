@@ -877,6 +877,44 @@ set(dl "https://pythia.org/download/pythia83/pythia8306.tgz")
 set(md5 "5728d1d8bc7b3b9e421ad619910a0bb3")
 set(dir "${PROJECT_SOURCE_DIR}/Backends/installed/${name}/${ver}")
 
+# - Add additional compiler-specific optimisation flags and suppress some warnings from -Wextra.
+set(pythia_CXXFLAGS "${BACKEND_CXX_FLAGS}")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+  set(pythia_CXXFLAGS "${pythia_CXXFLAGS} -fast") # -fast sometimes makes xsecs come out as NaN, but we catch that and invalidate those points.
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+  # Include all flags from -ffast-math, except -ffinite-math-only (which has proved to cause incorrect results), and -fno-rounding-math -fno-signaling-nans (which don't exist in Clang and are defaults anyway for gcc).
+  set(pythia_CXXFLAGS "${pythia_CXXFLAGS} -fno-math-errno -funsafe-math-optimizations")
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(pythia_CXXFLAGS "${pythia_CXXFLAGS} -fcx-limited-range") # Clang doesn't have this one.
+  endif()
+  set_compiler_warning("no-extra" pythia_CXXFLAGS)
+  set_compiler_warning("no-deprecated-declarations" pythia_CXXFLAGS)
+endif()
+
+# - Add "-undefined dynamic_lookup flat_namespace" to linker flags when OSX linker is used
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(pythia_CXX_SHARED_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS} -undefined dynamic_lookup -flat_namespace")
+  set(pythia_CXX_SONAME_FLABS "-Wl,-dylib_install_name")
+else()
+  set(pythia_CXX_SHARED_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS}")
+  set(pythia_CXX_SONAME_FLAGS "-Wl,-soname")
+endif()
+
+# - Add option to turn off intel IPO if insufficient memory exists to use it.
+option(PYTHIA_OPT "For Pythia: Switch Intel's multi-file interprocedural optimization on/off" ON)
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND NOT "${PYTHIA_OPT}")
+  set(pythia_CXXFLAGS "${pythia_CXXFLAGS} -no-ipo -ip")
+endif()
+
+# - Pythia 8.306 depends on std::auto_ptr which is removed in c++17, so we need to fall back to c++14 (or c++11) 
+# No longer true for 8.306, but check that there are no unintended side effects to removing this.
+#if(COMPILER_SUPPORTS_CXX17)
+#  string(REGEX REPLACE "-std=c\\+\\+17" "-std=c++14" pythia_CXXFLAGS "${pythia_CXXFLAGS}")
+#endif()
+
+# - Set include directories
+set(pythia_CXXFLAGS "${pythia_CXXFLAGS} -I${Boost_INCLUDE_DIR} -I${PROJECT_SOURCE_DIR}/contrib/slhaea/include")
+
 # - Setup HepMC-specific additions
 option(PYTHIA_WITH_HEPMC "Pythia is compiled with HepMC" ON)
 if(EXCLUDE_HEPMC)
@@ -903,7 +941,7 @@ if(NOT ditched_${name}_${ver})
     SOURCE_DIR ${dir}
     BUILD_IN_SOURCE 1
     PATCH_COMMAND patch -p1 < ${patch}
-    CONFIGURE_COMMAND ./configure ${EXTRA_CONFIG} --enable-shared --cxx="${CMAKE_CXX_COMPILER}" --cxx-common="${pythia_CXXFLAGS}" --cxx-shared="${pythia_CXX_SHARED_FLAGS}" --cxx-soname="${pythia_CXX_SONAME_FLAGS}" --lib-suffix=".so"
+    CONFIGURE_COMMAND ./configure ${EXTRA_CONFIG} --cxx="${CMAKE_CXX_COMPILER}" --cxx-common="${pythia_CXXFLAGS}" --cxx-shared="${pythia_CXX_SHARED_FLAGS}" --cxx-soname="${pythia_CXX_SONAME_FLAGS}" --lib-suffix=".so"
     BUILD_COMMAND ${MAKE_PARALLEL} CXX="${CMAKE_CXX_COMPILER}" lib/${lib}.so
     INSTALL_COMMAND ""
   )
