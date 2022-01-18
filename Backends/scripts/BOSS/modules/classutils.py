@@ -844,7 +844,7 @@ def constrVariableRefFunction(var_el, virtual=False, indent=cfg.indent, n_indent
     
     if virtual:
         if is_array:
-            func_code += 'virtual ' + var_kw_str + return_type + ' (&' + ref_method_name + '())' + var_array_limits_str + ' =0;\n'        
+            func_code += 'virtual ' + return_type + ' (&' + ref_method_name + '())' + var_array_limits_str + ' =0;\n'        
         else:
             func_code += 'virtual ' + var_kw_str + return_type + ' ' + ref_method_name + '() =0;\n'
     
@@ -1674,6 +1674,7 @@ def constrWrapperDef(class_name, abstr_class_name, loaded_parent_classes, class_
         var_type_el   = var_type_dict['el']
         pointerness   = var_type_dict['pointerness']
         is_ref        = var_type_dict['is_reference']
+        var_type_kw   = var_type_dict['cv_qualifiers']
 
         var_type = var_type_dict['name'] + '*'*pointerness + '&'*is_ref
         
@@ -1691,10 +1692,23 @@ def constrWrapperDef(class_name, abstr_class_name, loaded_parent_classes, class_
         # Construct common initialization list
         if var_is_loaded_class:
             if pointerness == 0:
-                common_init_list_code += indent + var_name + '( get_BEptr()->' + var_name + '_ref' + gb.code_suffix + '().get_init_wref()),\n'
+                if len(var_type_kw) > 0:
+                    # Casting away constness in this initalization to allow calling the get_init_wref()
+                    # method on an originally const member variable (without making too many other code changes)
+                    # The corresponding member reference we generate in the wrapper class is still a const reference.
+                    abstr_var_type = toAbstractType(var_type)
+                    common_init_list_code += indent + var_name + '( const_cast<' + abstr_var_type  + '>(get_BEptr()->' + var_name + '_ref' + gb.code_suffix + '()).get_init_wref()),\n'
+                else:
+                    common_init_list_code += indent + var_name + '( get_BEptr()->' + var_name + '_ref' + gb.code_suffix + '().get_init_wref()),\n'
             elif pointerness == 1:
-                common_init_list_code += indent + var_name + '( get_BEptr()->' + var_name + '_ref' + gb.code_suffix + '()->get_init_wptr()),\n'
-                # common_init_list_code += indent + var_name + '(wrapperbase::BEptr->' + var_name + '_ref' + gb.code_suffix + '()),\n'
+                if len(var_type_kw) > 0:
+                    # Casting away constness in this initalization call for same reason as above
+                    abstr_var_type = toAbstractType(var_type)
+                    common_init_list_code += indent + var_name + '( const_cast<' + abstr_var_type  + '>(get_BEptr()->' + var_name + '_ref' + gb.code_suffix + '()).get_init_wptr()),\n'
+                else:
+                    common_init_list_code += indent + var_name + '( get_BEptr()->' + var_name + '_ref' + gb.code_suffix + '()->get_init_wptr()),\n'
+
+
             else:
                 raise Exception('The BOSS wrapper class system cannot presently handle member variables that have a pointerness > 1')
         else:
