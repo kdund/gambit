@@ -31,7 +31,7 @@ gambit_backend_name      = 'vevacious'
 gambit_backend_version   = '1.0'
 gambit_backend_reference = 'Camargo-Molina:2013qva'
 gambit_base_namespace    = ''
-gambit_minuit_version    = '5.34.14'
+gambit_minuit_version    = '6.23.01'
 
 
 # ~~~~~ Information about the external code ~~~~~
@@ -44,7 +44,7 @@ input_files = [
 include_paths = [
     '../../../Backends/installed/'+gambit_backend_name+'/'+gambit_backend_version+'/include',
     '../../../Backends/installed/'+gambit_backend_name+'/'+gambit_backend_version+'/include/LHPC',
-    '../../../Backends/installed/minuit2/'+gambit_minuit_version+'/include',
+    '../../../ScannerBit/installed/minuit2/'+gambit_minuit_version+'/inc',
 #    '../../../contrib/eigen3.2.8' # This should be learned from GAMBIT somehow to future-protect against version changes (and if user uses own library!)
 ]
 base_paths = ['../../../Backends/installed/'+gambit_backend_name+'/'+gambit_backend_version]
@@ -102,10 +102,18 @@ ini_function_in_header = True
 # The listed pragma directives will be added before/after including the
 # the BOSS-generated headers in GAMBIT.
 
-pragmas_begin = [
-]
+pragmas_begin = []
 
-pragmas_end = [
-]
+pragmas_end = []
 
 
+# ~~~~~ Extra code to surround BOSS-generated code included in GAMBIT ~~~~~
+
+# The listed code will be added at the top/bottom in the frontend header file 
+# and in the loaded_types.hpp header.
+
+surround_code_begin = '''
+'''
+
+surround_code_end = ''' 
+'''

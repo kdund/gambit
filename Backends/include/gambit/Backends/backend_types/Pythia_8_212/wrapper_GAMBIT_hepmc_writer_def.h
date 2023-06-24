@@ -14,7 +14,7 @@ namespace CAT_3(BACKENDNAME,_,SAFE_VERSION)
     {
         
         // Member functions: 
-        inline void GAMBIT_hepmc_writer::init(::std::basic_string<char, std::char_traits<char>, std::allocator<char> > filename_in, bool HepMC2, bool HepMC3)
+        inline void GAMBIT_hepmc_writer::init(std::string filename_in, bool HepMC2, bool HepMC3)
         {
             get_BEptr()->init(filename_in, HepMC2, HepMC3);
         }
@@ -29,7 +29,7 @@ namespace CAT_3(BACKENDNAME,_,SAFE_VERSION)
             get_BEptr()->write_event_HepMC2__BOSS((*pythia).get_BEptr());
         }
         
-        inline void GAMBIT_hepmc_writer::convert_to_HepMC_event(Pythia8::Pythia* pythia, ::HepMC3::GenEvent& event)
+        inline void GAMBIT_hepmc_writer::convert_to_HepMC_event(Pythia8::Pythia* pythia, HepMC3::GenEvent& event)
         {
             get_BEptr()->convert_to_HepMC_event__BOSS((*pythia).get_BEptr(), event);
         }

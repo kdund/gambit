@@ -28,7 +28,8 @@
 
 #define  Default_gm2calc 1_3_0
 #define  Default_Pythia 8_306
+#define  Default_HepLike 2_0
 #define  Default_vevacious 1_0
-#define  Default_Rivet 3_1_4
+#define  Default_Rivet 3_1_5
 
 // Defaults added by GUM (do not remove this comment).

@@ -544,6 +544,20 @@ def proc_cat(dm, sv, products, propagators, gambit_pdg_dict,
 
     return towrite
 
+def write_wimp_props(model_name):
+
+    wimp_prop_h = dumb_indent(4, (
+              "MODEL_CONDITIONAL_DEPENDENCY({0}_spectrum, Spectrum, {0})\n"
+              "ALLOW_MODELS({0})\n"
+    ).format(model_name))
+
+    wimp_prop_c = dumb_indent(6, (
+              "else if(ModelInUse(\"{0}\"))\n"
+              "  props.mass = Dep::{0}_spectrum->get(Par::Pole_Mass, props.name);\n"
+    ).format(model_name))
+
+    return wimp_prop_h, wimp_prop_c
+
 
 def write_darkbit_src(dm, pc, sv, products, propagators, does_DM_decay,
                       gambit_pdg_dict, gambit_model_name, calchep_pdg_dict,
@@ -713,6 +727,7 @@ def write_darkbit_rollcall(model_name, pc, does_DM_decay):
         pro_cat = dumb_indent(4, (
                 "#define FUNCTION TH_ProcessCatalog_{0}\n"
                 "  START_FUNCTION(TH_ProcessCatalog)\n"
+                "  DEPENDENCY(WIMP_properties, WIMPprops)\n"
                 "  DEPENDENCY(decay_rates, DecayTable)\n"
                 "  DEPENDENCY({0}_spectrum, Spectrum)\n"
                 "{1}"
@@ -943,7 +958,7 @@ def write_micromegas_src(gambit_model_name, spectrum, mathpackage, params,
         if chwidth == "0": continue
         mo_src += (
                "try {{ width = tbl->at(\"{0}\").width_in_GeV; }}\n"
-               " catch(std::exception& e) {{ present = false; }}\n"
+               "catch(std::exception& e) {{ present = false; }}\n"
                "if (present) Assign_Value(\"{1}\", width);\n"
                "present = true;\n\n"
         ).format(pdg_to_particle(pdg, gambit_pdg_codes), chwidth)
@@ -1099,10 +1114,9 @@ def add_micromegas_to_cmake(model_name, reset_dict):
             "  ExternalProject_Add(${name}_${model}_${ver}\n"
             "    DOWNLOAD_COMMAND \"\"\n"
             "    SOURCE_DIR ${dir}\n"
+            "    BUILD_IN_SOURCE 1\n"
             "    PATCH_COMMAND ./newProject ${model} && patch -p0 < ${patch}\n"
             "    CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy_directory ${patchdir}/mdlfiles ${dir}/${model}/work/models/\n"
-            "    BUILD_IN_SOURCE 1\n"
-            "    CONFIGURE_COMMAND \"\"\n"
             "    BUILD_COMMAND ${CMAKE_COMMAND} -E chdir ${model} ${CMAKE_MAKE_PROGRAM} sharedlib main=main.c\n"
             "    INSTALL_COMMAND \"\"\n"
             "  )\n"
@@ -1168,6 +1182,10 @@ def add_micromegas_to_darkbit_rollcall(model_name, reset_dict, does_DM_decay):
         towrite = (
             "      BACKEND_OPTION((MicrOmegas_{}),(gimmemicro))\n"
             ).format(model_name)
+        if function == "RD_oh2_Xf_MicrOmegas":
+          towrite += (
+            "      ALLOW_MODEL({})\n"
+            ).format(model_name)
 
         if linenum != 0:
             amend_file("DarkBit_rollcall.hpp", "DarkBit", towrite, linenum,
@@ -1179,10 +1197,6 @@ def add_micromegas_to_darkbit_rollcall(model_name, reset_dict, does_DM_decay):
     # Add the model to the function arguments
     file = "DarkBit_rollcall.hpp"
     module = "DarkBit"
-    if not does_DM_decay:
-        add_new_model_to_function(file, module, "RD_oh2_Xf",
-                                  "RD_oh2_Xf_MicrOmegas", model_name,
-                                  reset_dict, pattern="ALLOW_MODELS")
     add_new_model_to_function(file, module, "DD_couplings",
                               "DD_couplings_MicrOmegas", model_name,
                               reset_dict, pattern="ALLOW_MODEL_DEPENDENCE")

@@ -28,13 +28,13 @@ namespace CAT_3(BACKENDNAME,_,SAFE_VERSION)
         
                 // Member functions: 
             public:
-                void init(::std::basic_string<char, std::char_traits<char>, std::allocator<char> > filename_in, bool HepMC2, bool HepMC3);
+                void init(std::string filename_in, bool HepMC2, bool HepMC3);
         
                 void write_event_HepMC3(Pythia8::Pythia* pythia);
         
                 void write_event_HepMC2(Pythia8::Pythia* pythia);
         
-                void convert_to_HepMC_event(Pythia8::Pythia* pythia, ::HepMC3::GenEvent& event);
+                void convert_to_HepMC_event(Pythia8::Pythia* pythia, HepMC3::GenEvent& event);
         
         
                 // Wrappers for original constructors: 
