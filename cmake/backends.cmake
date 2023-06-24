@@ -1182,7 +1182,7 @@ set(name "pythia")
 set(ver "8.306")
 set(lib "libpythia8")
 set(dl "https://pythia.org/download/pythia83/pythia8306.tgz")
-set(md5 "5728d1d8bc7b3b9e421ad619910a0bb3")
+set(md5 "8df6c6a202fbff5c2b3439aa1af7c209")
 set(dir "${PROJECT_SOURCE_DIR}/Backends/installed/${name}/${ver}")
 
 # - Add additional compiler-specific optimisation flags and suppress some warnings from -Wextra.
