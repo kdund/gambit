@@ -129,7 +129,7 @@ namespace Gambit
         /// @note This override is most commonly used in ColliderBit.
         void init(const std::string pythiaDocPath,
                   const std::vector<std::string>& externalSettings,
-                  const SLHAea::Coll* slhaea=nullptr, std::ostream& os=std::cout)
+                  const SLHAea::Coll* slhaea)
         {
           // Settings acquired externally (ex from a gambit yaml file)
           for(const str& command : externalSettings) _pythiaSettings.push_back(command);
@@ -155,7 +155,7 @@ namespace Gambit
             _pythiaInstance->readString(command);
           }
 
-          if (!_pythiaInstance->init(os)) throw InitializationError();
+          if (!_pythiaInstance->init()) throw InitializationError();
         }
 
         /// Initialize from some external settings.
@@ -163,7 +163,7 @@ namespace Gambit
         /// Needs to directly construct the new matrix elements (rather than use flags)
         void init_user_model(const std::string pythiaDocPath,
                              const std::vector<std::string>& externalSettings,
-                             const SLHAea::Coll* slhaea=nullptr, std::ostream& os=std::cout)
+                             const SLHAea::Coll* slhaea=nullptr)
         {
           // Settings acquired externally (for example, from a gambit yaml file)
           for(const str& command : externalSettings) _pythiaSettings.push_back(command);
@@ -183,21 +183,21 @@ namespace Gambit
           // Send along the SLHAea::Coll pointer, if it exists
           if (slhaea) _pythiaInstance->slhaInterface.slha.setSLHAea(slhaea);
 
-          if (!_pythiaInstance->init(os)) throw InitializationError();
+          if (!_pythiaInstance->init()) throw InitializationError();
         }
 
         /// Initialize from some external settings, assuming no given SLHAea instance.
         void init(const std::string pythiaDocPath,
-                  const std::vector<std::string>& externalSettings, std::ostream& os)
+                  const std::vector<std::string>& externalSettings)
         {
-          init(pythiaDocPath, externalSettings, nullptr, os);
+          init(pythiaDocPath, externalSettings, nullptr);
         }
 
         /// Initialize from some external settings, assuming no given SLHAea instance.
         void init_user_model(const std::string pythiaDocPath,
-                             const std::vector<std::string>& externalSettings, std::ostream& os)
+                             const std::vector<std::string>& externalSettings)
         {
-          init_user_model(pythiaDocPath, externalSettings, nullptr, os);
+          init_user_model(pythiaDocPath, externalSettings, nullptr);
         }
 
         ///@}

@@ -149,13 +149,9 @@ namespace Gambit
           cout << DEBUG_PREFIX << "getPythia"+model_suffix+": My Pythia seed is: " << seed << endl;
         #endif
 
-        // Variable needed for the xsec veto
-        // TODO: get rid of this
-        std::stringstream processLevelOutput;
-
         try
         {
-          result.init(pythia_doc_path, pythiaOptions, &slha, processLevelOutput);
+          result.init(pythia_doc_path, pythiaOptions, &slha);
         }
         catch (typename Py8Collider<PythiaT,EventT,hepmc_writerT>::InitializationError& e)
         {
@@ -164,7 +160,7 @@ namespace Gambit
           pythiaOptions.push_back("Random:seed = " + std::to_string(newSeedBase));
           try
           {
-            result.init(pythia_doc_path, pythiaOptions, &slha, processLevelOutput);
+            result.init(pythia_doc_path, pythiaOptions, &slha);
           }
           catch (typename Py8Collider<PythiaT,EventT,hepmc_writerT>::InitializationError& e)
           {
