@@ -1193,7 +1193,45 @@ diff -rupN pythia8306_original/include/Pythia8Plugins/GeneratorInput.h pythia830
 diff -rupN pythia8306_original/include/Pythia8Plugins/JetMatching.h pythia8306_patched/include/Pythia8Plugins/JetMatching.h
 --- pythia8306_original/include/Pythia8Plugins/JetMatching.h	2021-06-29 16:10:32.000000000 +0200
 +++ pythia8306_patched/include/Pythia8Plugins/JetMatching.h	2022-02-08 21:44:06.483994108 +0100
-@@ -365,1684 +365,6 @@ private:
+@@ -45,37 +45,6 @@
+ 
+ };
+ 
+-//--------------------------------------------------------------------------
+-
+-// Find next cluster pair to join.
+-
+-void HJSlowJet::findNext() {
+-
+-  // Find smallest of diB, dij.
+-  if (clSize > 0) {
+-    iMin =  0;
+-    jMin = -1;
+-    dMin = 1.0/TINY;
+-    // Remove the possibility of choosing a beam clustering
+-    for (int i = 1; i < clSize; ++i) {
+-      for (int j = 0; j < i; ++j) {
+-        if (dij[i*(i-1)/2 + j] < dMin) {
+-          iMin = i;
+-          jMin = j;
+-          dMin = dij[i*(i-1)/2 + j];
+-        }
+-      }
+-    }
+-
+-  // If no clusters left then instead default values.
+-  } else {
+-    iMin = -1;
+-    jMin = -1;
+-    dMin = 0.;
+-  }
+-
+-}
+-
+ //==========================================================================
+ 
+ // Declaration of main JetMatching class to perform MLM matching.
+@@ -365,1684 +334,6 @@
  
  };
  
@@ -4029,7 +4067,7 @@ diff -rupN pythia8306_original/src/GeneratorInput.cc pythia8306_patched/src/Gene
 diff -rupN pythia8306_original/src/JetMatching.cc pythia8306_patched/src/JetMatching.cc
 --- pythia8306_original/src/JetMatching.cc	1970-01-01 01:00:00.000000000 +0100
 +++ pythia8306_patched/src/JetMatching.cc	2022-02-08 21:44:06.539993279 +0100
-@@ -0,0 +1,1687 @@
+@@ -0,0 +1,1717 @@
 +#include "Pythia8Plugins/JetMatching.h"
 +
 +// GAMBIT: We moved the below definitions from GeneratorInput.h
@@ -4038,6 +4076,36 @@ diff -rupN pythia8306_original/src/JetMatching.cc pythia8306_patched/src/JetMatc
 +
 +namespace Pythia8 {
 +
++//--------------------------------------------------------------------------
++
++// Find next cluster pair to join.
++
++void HJSlowJet::findNext() {
++
++  // Find smallest of diB, dij.
++  if (clSize > 0) {
++    iMin =  0;
++    jMin = -1;
++    dMin = 1.0/TINY;
++    // Remove the possibility of choosing a beam clustering
++    for (int i = 1; i < clSize; ++i) {
++      for (int j = 0; j < i; ++j) {
++        if (dij[i*(i-1)/2 + j] < dMin) {
++          iMin = i;
++          jMin = j;
++          dMin = dij[i*(i-1)/2 + j];
++        }
++      }
++    }
++
++  // If no clusters left then instead default values.
++  } else {
++    iMin = -1;
++    jMin = -1;
++    dMin = 0.;
++  }
++
++}
 +//==========================================================================
 +
 +// Main implementation of JetMatching class.
