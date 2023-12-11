@@ -678,15 +678,11 @@ if args.file:
                            bsm_particle_list, decays)
             print("Creating a diff vs original version of Pythia.")
             # Before writing the backend patch, find and replace couplingsPtr with coupSMPtr in any of the Sigma_ModelName_process.cc files
-            # TODO: Debugging
-            print("Finding Pythia files in: ", new_pythia_dir+"/src")
+            # TODO: Let gum choose between pythia 8.2 and 8.3 (Currently 8.3)
+            # Swap out any use of couplingsPtr with coupSMPtr in MadGraph output, needed for Pythia 8.3
             for filename in os.listdir(new_pythia_dir+"/src"):
-                # TODO: Debugging
-                print("FileName: ", filename)
                 if os.path.isfile(os.path.join(new_pythia_dir+"/src",filename)) and ('Sigma_'+ gum.name) in filename:
-                    # TODO: Debugging
-                    print("Found FileName: ", filename)
-                    find_and_replace(filename, ",", " couplingsPtr", " coupSMPtr") # TODO: Will want to give a gum pythia option for version
+                    find_and_replace(os.path.join(new_pythia_dir+"/src",filename), ",", " couplingsPtr", " coupSMPtr")
             write_backend_patch(output_dir, pristine_pythia_dir, new_pythia_dir,
                                 "pythia_"+gum.name.lower(),
                                 "8."+base_pythia_version)
