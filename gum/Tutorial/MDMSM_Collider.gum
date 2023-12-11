@@ -16,6 +16,7 @@ output:
  
 output_options:
   pythia:
+    base_pythia_version: "306"
     collider_processes:
       - p p > ~chi ~chi
       - p p > ~chi ~chi j

@@ -259,32 +259,56 @@ def get_higgs_invisibles(higgses, spheno_decays, particles, gambit_pdgs,
 
     return indent(towrite)
 
-def write_set_userhook(model_name,base_pythia_version):
+def write_set_userhook(model_name, base_pythia_version):
     """
     Adds a specialised SetHooks class to the PyCollider routines
     in SetHooks.hpp and getPy8Collider.hpp.
     """
     # Forming the code to write into the getPy8Collider.hpp class
-    towrite = (
-            '\n'
-            '    /// In the case that the {0} model is being run.\n'
-            '    template <>\n'
-            '    class SetHooks<Pythia_{0}_default::Pythia8::Pythia,Pythia_{0}_default::Pythia8::Event>\n'
-            '    {{\n'
-            '      public:\n'
-            '        Pythia_{0}_8_{1}::Pythia8::CombineMatchingInput combined;\n'
-            '\n'
-            '        //Constructor and Destructor\n'
-            '        SetHooks() {{ }}\n'
-            '        ~SetHooks() {{ }}\n'
-            '\n'
-            '        //Function to set the UserHook\n'
-            '        bool SetupHook(Pythia_{0}_default::Pythia8::Pythia* Py8Collider)\n'
-            '        {{\n'
-            '          combined.setHook(*Py8Collider);\n'
-            '          return true;\n'
-            '        }}\n'
-            '    }};\n').format(model_name,base_pythia_version)
+    if (base_pythia_version == "306"):
+      towrite = (
+              '\n'
+              '    /// In the case that the {0} model is being run.\n'
+              '    template <>\n'
+              '    class SetHooks<Pythia_{0}_default::Pythia8::Pythia,Pythia_{0}_default::Pythia8::Event>\n'
+              '    {{\n'
+              '      public:\n'
+              '        Pythia_{0}_8_{1}::Pythia8::CombineMatchingInput combined;\n'
+              '\n'
+              '        //Constructor and Destructor\n'
+              '        SetHooks() {{ }}\n'
+              '        ~SetHooks() {{ }}\n'
+              '\n'
+              '        //Function to set the UserHook\n'
+              '        bool SetupHook(Pythia_{0}_default::Pythia8::Pythia* Py8Collider)\n'
+              '        {{\n'
+              '          combined.setHook(*Py8Collider);\n'
+              '          return true;\n'
+              '        }}\n'
+              '    }};\n').format(model_name,base_pythia_version)
+    else:
+      towrite = (
+              '\n'
+              '    /// In the case that the {0} model is being run.\n'
+              '    template <>\n'
+              '    class SetHooks<Pythia_{0}_default::Pythia8::Pythia,Pythia_{0}_default::Pythia8::Event>\n'
+              '    {{\n'
+              '      public:\n'
+              '        Pythia_{0}_8_{1}::Pythia8::UserHooks* matching;\n'
+              '        Pythia_{0}_8_{1}::Pythia8::CombineMatchingInput combined;\n'
+              '\n'
+              '        //Constructor and Destructor\n'
+              '        SetHooks() {{ }}\n'
+              '        ~SetHooks() {{ }}\n'
+              '\n'
+              '        //Function to set the UserHook\n'
+              '        bool SetupHook(Pythia_{0}_default::Pythia8::Pythia* Py8Collider)\n'
+              '        {{\n'
+              '          matching = combined.getHook(*Py8Collider);\n'
+              '          Py8Collider->setUserHooksPtr(matching);\n'
+              '          return true;\n'
+              '        }}\n'
+              '    }};\n').format(model_name,base_pythia_version)
 
     return(towrite)
 

@@ -347,7 +347,7 @@ def fix_pythia_lib(model, patched_dir, pythia_groups, particles, decays):
     os.rename(xmnew, xmold)
     """
 
-def write_boss_configs_for_pythia(model, output_dir, reset_dict):
+def write_boss_configs_for_pythia(model, output_dir, reset_dict, base_pythia_version):
     """
     Writes the BOSS configs for Pythia.
     """
@@ -384,18 +384,23 @@ def write_boss_configs_for_pythia(model, output_dir, reset_dict):
       write_file(outfile, "Backends", to_write, reset_dict)
 
 
-def write_pythia_cmake_entry(model, output_dir):
+def write_pythia_cmake_entry(model, output_dir, base_pythia_version):
     """
     Writes Pythia entry for cmake/backends.cmake
     """
 
     # The string that will commence the block to be added by GUM
+    if (base_pythia_version == "306"):
+      version_shorthand = "83"
+    else:
+      version_shorthand = "82"
+    
     to_write = "# Pythia with matrix elements for "+model+" (brought to you today by the letters G, U and M).\n"\
                "set(model \""+model.lower()+"\")\n"\
                "set(name \"pythia_${model}\")\n"\
                "set(ver \"8."+base_pythia_version+"\")\n"\
                "set(lib \"libpythia8\")\n"\
-               "set(dl \"https://pythia.org/download/pythia83/pythia8"+base_pythia_version+".tgz\")\n"\
+               "set(dl \"https://pythia.org/download/" + version_shorthand + "pythia8"+base_pythia_version+".tgz\")\n"\
                "set(md5 \""+pythia_md5+"\")\n"\
                "set(dir \"${PROJECT_SOURCE_DIR}/Backends/installed/${name}/${ver}\")\n"\
                "set(model_specific_patch \"${PROJECT_SOURCE_DIR}/Backends/patches/${name}/${ver}/patch_${name}_${ver}.dif\")\n"\
@@ -421,7 +426,7 @@ def write_pythia_cmake_entry(model, output_dir):
     return to_write
 
 
-def patch_pythia_patch(model_parameters, model_name, reset_dict):
+def patch_pythia_patch(model_parameters, model_name, reset_dict, base_pythia_version):
     """
     Writes a generic patch to the existing GAMBIT Pythia patch.
     This adds new LesHouches block entries for a new model.
@@ -520,6 +525,6 @@ def patch_pythia_patch(model_parameters, model_name, reset_dict):
     filename = "pythia_{0}/8.{1}/patch_pythia_{0}.py".format(model_name.lower(), base_pythia_version)
     write_file(filename, "Backends", patch_contents, reset_dict, overwrite_path = "patches/")
 
-def write_pythia_capability_defs(model, cap_def):
+def write_pythia_capability_defs(model, cap_def, base_pythia_version):
     # Add capability definitions
     cap_def['Pythia_' + model + "_8_" + base_pythia_version + '_init'] = 'Initialise the Pythia 8.' + base_pythia_version + ' ' + model + ' backend.'
