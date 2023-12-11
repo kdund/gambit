@@ -131,7 +131,7 @@ EXTERNALPROJECT_ADD(
 )
 add_extra_targets(${name} ${dir})
 
-# Download Pythia v8.212 TODO: Rename
+# Download Pythia v8.212
 set(name "Pythia_8_212")
 set(dir "${CMAKE_SOURCE_DIR}/contrib/${name}")
 set(dl "https://pythia.org/download/pythia82/pythia8212.tgz")
