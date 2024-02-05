@@ -190,6 +190,10 @@ namespace Gambit
       bool use_marg;
       bool combine_nocovar_SRs;
       bool use_fulllikes;
+      Options runOptions;
+      bool (*FullLikes_FileExists)(const str&);
+      int (*FullLikes_ReadIn)(const str&, const str&);
+      double (*FullLikes_Evaluate)(std::map<str,double>&,const str&);
     };
 
 
@@ -201,9 +205,8 @@ namespace Gambit
 
     // =========== Forward declarations ===========
 
-    /// Forward declaration of funtion in LHC_likelihoods
-    // @todo Interpolation will not currently work with the FullLikes backend. None of the currently written interpolation analysis require this.
-    void fill_analysis_loglikes(const AnalysisData&, AnalysisLogLikes&, bool, bool, bool, bool, bool (*FullLikes_FileExists)(const str&), int (*FullLikes_ReadIn)(const str&, const str&), double (*FullLikes_Evaluate)(std::map<str,double>&,const str&), const std::string);
+    /// Forward declaration of function in LHC_likelihoods
+    void fill_analysis_loglikes(const AnalysisData&, AnalysisLogLikes&, bool, bool, bool, const Options&, bool, bool (*FullLikes_FileExists)(const str&), int (*FullLikes_ReadIn)(const str&, const str&), double (*FullLikes_Evaluate)(std::map<str,double>&,const str&), const std::string);
 
     /// Forward declarations of functions in this file
     void DMEFT_fill_analysis_info_map();
@@ -1020,7 +1023,6 @@ namespace Gambit
       {
         // Grab some info about the current analysis
         const bool has_covar = adata.srcov.rows() > 0;
-        const bool has_fulllikes = adata.hasFullLikes();
 
         // Modify the signal predictions for this analysis
         signal_modifier_function(adata, fpars->lambda, *a);
@@ -1028,7 +1030,7 @@ namespace Gambit
         // Compute the combined analysis loglike and add it to total_loglike
         AnalysisLogLikes analoglikes;
         analoglikes.initialize(adata);
-        fill_analysis_loglikes(adata, analoglikes, fpars->use_marg, fpars->use_covar && has_covar, fpars->combine_nocovar_SRs, fpars->use_fulllikes && has_fulllikes, nullptr, nullptr, nullptr, "");
+        fill_analysis_loglikes(adata, analoglikes, fpars->use_marg, fpars->use_covar && has_covar, fpars->combine_nocovar_SRs, fpars->runOptions, fpars->use_fulllikes, fpars->FullLikes_FileExists, fpars->FullLikes_ReadIn, fpars->FullLikes_Evaluate, "");
         total_loglike += analoglikes.combination_loglike;
       }
 
@@ -1068,14 +1070,43 @@ namespace Gambit
       std::vector<str> default_skip_analyses;  // The default is empty lists of analyses to skip
       static const std::vector<str> skip_analyses = Pipes::calc_combined_LHC_LogLike::runOptions->getValueOrDef<std::vector<str> >(default_skip_analyses, "skip_analyses");
 
-      // Steal some settings from the "calc_LHC_LogLikes" function
-      static const bool use_covar = Pipes::calc_LHC_LogLikes::runOptions->getValueOrDef<bool>(true, "use_covariances");
+      // Steal settings from either the "calc_LHC_LogLikes" or "calc_LHC_LogLikes_full" function
+      // depending on which is used
+      // NOTE: This requires that the use_marginalising is always present
+      // TODO: Find a neater solution without required yaml options
+      // This also pulls the function pointers for the fulllikes backend from the stolen pipe
+      Options calc_LHC_LogLikes_runOptions;
+      bool (*FullLikes_FileExists)(const str&);
+      int (*FullLikes_ReadIn)(const str&, const str&);
+      double (*FullLikes_Evaluate)(std::map<str,double>&,const str&);
+      bool use_fulllikes;
+      if (Pipes::calc_LHC_LogLikes_full::runOptions->hasKey("use_marginalising"))
+      {
+        calc_LHC_LogLikes_runOptions = *Pipes::calc_LHC_LogLikes_full::runOptions;
+        use_fulllikes = true;
+        FullLikes_FileExists = Pipes::calc_LHC_LogLikes_full::BEreq::FullLikes_FileExists.pointer();
+        FullLikes_ReadIn = Pipes::calc_LHC_LogLikes_full::BEreq::FullLikes_ReadIn.pointer();
+        FullLikes_Evaluate = Pipes::calc_LHC_LogLikes_full::BEreq::FullLikes_Evaluate.pointer();
+      }
+      else if (Pipes::calc_LHC_LogLikes::runOptions->hasKey("use_marginalising"))
+      {
+        calc_LHC_LogLikes_runOptions = *Pipes::calc_LHC_LogLikes::runOptions;
+        use_fulllikes = false;
+        FullLikes_FileExists = nullptr;
+        FullLikes_ReadIn = nullptr;
+        FullLikes_Evaluate = nullptr;
+      }
+      else
+      {
+        ColliderBit_error().raise(LOCAL_INFO, "ERROR! calc_DMEFT_profiled_LHC_nuisance_params requires that the calc_LHC_LogLikes or calc_LHC_LogLikes_full capability is provided the \"use_marginalising\" setting.");
+      }
+
+      static const bool use_covar = calc_LHC_LogLikes_runOptions.getValueOrDef<bool>(true, "use_covariances");
       // Use marginalisation rather than profiling (probably less stable)?
-      static const bool use_marg = Pipes::calc_LHC_LogLikes::runOptions->getValueOrDef<bool>(false, "use_marginalising");
+      static const bool use_marg = calc_LHC_LogLikes_runOptions.getValueOrDef<bool>(false, "use_marginalising");
       // Use the naive sum of SR loglikes for analyses without known correlations?
-      static const bool combine_nocovar_SRs = Pipes::calc_LHC_LogLikes::runOptions->getValueOrDef<bool>(false, "combine_SRs_without_covariances");
-      // These LHC likelihoods don't use the ATLAS full likelihood system
-      static const bool use_fulllikes = false;
+      static const bool combine_nocovar_SRs = calc_LHC_LogLikes_runOptions.getValueOrDef<bool>(false, "combine_SRs_without_covariances");
+
 
       // Clear previous result map
       result.clear();
@@ -1111,6 +1142,10 @@ namespace Gambit
       fpars.use_marg = use_marg;
       fpars.combine_nocovar_SRs = combine_nocovar_SRs;
       fpars.use_fulllikes = use_fulllikes;
+      fpars.runOptions = calc_LHC_LogLikes_runOptions;
+      fpars.FullLikes_FileExists = FullLikes_FileExists;
+      fpars.FullLikes_ReadIn = FullLikes_ReadIn;
+      fpars.FullLikes_Evaluate = FullLikes_Evaluate;
 
       // Create a variable to store the best-fit loglike
       double minus_loglike_bestfit = 50000.;
