@@ -735,7 +735,7 @@ class AdvanceDevs : public BasicDevs, public Cholesky
             int i;
             double dist = 0.0;
 
-            double vec[num];
+            std::vector<double> vec(num);
             double norm = 0.0;
             for (i = 0; i < num; i++)
             {
@@ -758,7 +758,7 @@ class AdvanceDevs : public BasicDevs, public Cholesky
             }
 
             EnterMat(cvar);
-            ElMult(vec, pin);
+            ElMult(&vec[0], pin);
             for (i = 0; i < num; i++)
             {
                 pin[i] = fac*dist*pin[i]/norm + p0[i];
@@ -772,7 +772,7 @@ class AdvanceDevs : public BasicDevs, public Cholesky
             int i;
             double dist = 0.0;
 
-            double vec[num];
+            std::vector<double> vec(num);
             double norm = 0.0;
             for (i = 0; i < num; i++)
             {
@@ -783,7 +783,7 @@ class AdvanceDevs : public BasicDevs, public Cholesky
 
             dist = pow(Doub(), 1.0/num);
 
-            ElMult(vec, pin);
+            ElMult(&vec[0], pin);
             for (i = 0; i < num; i++)
             {
                 pin[i] = fin*dist*pin[i] + p0[i];
@@ -797,7 +797,7 @@ class AdvanceDevs : public BasicDevs, public Cholesky
             int i;
             double dist = 0.0;
 
-            double vec[num];
+            std::vector<double> vec(num);
             double norm = 0.0;
             for (i = 0; i < num; i++)
             {
@@ -809,7 +809,7 @@ class AdvanceDevs : public BasicDevs, public Cholesky
             dist = pow(Doub(), 1.0/num);
 
             EnterMat(cvar);
-            ElMult(vec, pin);
+            ElMult(&vec[0], pin);
             for (i = 0; i < num; i++)
             {
                 pin[i] = fin*dist*pin[i] + p0[i];
@@ -1137,7 +1137,7 @@ class RandomBasis : public BasicDevs
         void RandRot()
         {
             double temp;
-            double vec[num];
+            std::vector<double> vec(num);
             int i, j, k;
 
             for (i = 0; i < num; i++)

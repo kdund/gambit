@@ -5,6 +5,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
+#include <pybind11/eigen.h>
 #include <dlfcn.h>
 #include <memory>
 #include <regex>
@@ -145,6 +146,10 @@ namespace Gambit
             
             void ensure_size_vec(std::vector<double> &, size_t)
             {
+            } 
+            
+            void ensure_size_evec(hyper_cube_ref<double>, size_t)
+            {
             }
             
         }
@@ -240,6 +245,8 @@ PYBIND11_MODULE(ScannerBit, m)
     m.def("print", &scanpy::scan::print);
         
     m.def("ensure_size", &scanpy::ensure_size_vec);
+    
+    m.def("ensure_size", &scanpy::ensure_size_evec);
     
     m.def("ensure_size", &scanpy::ensure_size_fake);
     

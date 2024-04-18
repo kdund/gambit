@@ -584,6 +584,10 @@ function(add_standalone_tarballs modules version)
                                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/${module} ${dirname}/${module}
                                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/Logs ${dirname}/Logs
                                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/Utils ${dirname}/Utils
+                                      COMMAND ${CMAKE_COMMAND} -E remove ${dirname}/Utils/src/model_parameters.cpp
+                                      COMMAND ${CMAKE_COMMAND} -E touch ${dirname}/Utils/src/model_parameters.cpp
+                                      COMMAND ${CMAKE_COMMAND} -E remove ${dirname}/Utils/src/slhaea_helpers.cpp
+                                      COMMAND ${CMAKE_COMMAND} -E touch ${dirname}/Utils/src/slhaea_helpers.cpp
                                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/Printers ${dirname}/Printers
                                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/cmake ${dirname}/cmake
                                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/config ${dirname}/config

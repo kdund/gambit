@@ -323,9 +323,9 @@ namespace Gambit
         {
           std::vector<double> local_lnlike(size);
           std::vector<double> local_personal_best_value(size);
-          double local_x[size][nPar_total];
-          double local_v[size][nPar_total];
-          double local_personal_best_x[size][nPar_total];
+          std::vector<std::vector<double>> local_x(size, std::vector<double>(nPar_total));
+          std::vector<std::vector<double>> local_v(size, std::vector<double>(nPar_total));
+          std::vector<std::vector<double>> local_personal_best_x(size, std::vector<double>(nPar_total));
           GMPI::Comm().Gather_single(particles.at(i).lnlike, local_lnlike, 0);
           GMPI::Comm().Gather_single(particles.at(i).personal_best_value, local_personal_best_value, 0);
           GMPI::Comm().Gather_arrays(particles.at(i).x[0], local_x[0][0], nPar_total, 0);

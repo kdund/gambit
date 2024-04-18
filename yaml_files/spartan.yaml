@@ -333,8 +333,6 @@ Scanner:
         min_num_live_points: 1000
         dlogz: 0.5
 
->>>>>>> master
-
 ObsLikes:
 
   - purpose:      LogLike

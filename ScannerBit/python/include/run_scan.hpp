@@ -76,9 +76,18 @@ namespace Gambit
                     }
                 }
                 
-                void transform(const std::vector<double> &vec, std::unordered_map<std::string, double> &map) const
+                void transform(hyper_cube_ref<double> unit, std::unordered_map<std::string, double> &physical) const
                 {
-                    obj(py::cast(&vec), py::cast(&map));
+                    obj(py::cast(unit), py::cast(&physical));
+                }
+                
+                void inverse_transform(const std::unordered_map<std::string, double> &physical, hyper_cube_ref<double> unit) const 
+                {
+                }
+                
+                double log_prior_density(const std::unordered_map<std::string, double> &) const
+                {
+                    return 0.0;
                 }
             };
 

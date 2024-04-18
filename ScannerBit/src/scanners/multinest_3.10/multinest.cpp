@@ -109,8 +109,8 @@ scanner_plugin(multinest, version(3, 10))
       int initMPI(0);                                           // Initialise MPI in ScannerBit, not in MultiNest
       void *context = 0;                                        // any additional information user wants to pass (not required by MN)
       // Which parameters to have periodic boundary conditions?
-      int pWrap[ndims];
-      for(int i = 0; i < ndims; i++) pWrap[i] = 0; // (need to do more work if we actually want to allow periodic BCs)
+      std::vector<int> pWrap(ndims, 0);
+      //for(int i = 0; i < ndims; i++) pWrap[i] = 0; // (need to do more work if we actually want to allow periodic BCs)
 
       // TODO: check what happens if resume mode is active but multinest native output is not written. I guess it will resume writing to the printer output, but actually start a new scan?
 
@@ -163,7 +163,7 @@ scanner_plugin(multinest, version(3, 10))
       //Run MultiNest, passing callback functions for the loglike and dumper.
       if(myrank == 0) std::cout << "Starting MultiNest run..." << std::endl;
       run(IS, mmodal, ceff, nlive, tol, efr, ndims, nPar, nClsPar, maxModes, updInt, Ztol,
-          root, seed, pWrap, fb, resume, outfile, initMPI, ln0, maxiter,
+          root, seed, &pWrap[0], fb, resume, outfile, initMPI, ln0, maxiter,
           Gambit::MultiNest::callback_loglike, Gambit::MultiNest::callback_dumper, context);
       if(myrank == 0) std::cout << "Multinest run finished!" << std::endl;
       return 0;

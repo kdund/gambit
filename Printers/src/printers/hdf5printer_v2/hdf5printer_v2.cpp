@@ -1421,6 +1421,7 @@ namespace Gambit
       , myRank(0)
       , mpiSize(1)
       , lastPointID(nullpoint)
+      , use_metadata(false)
 #ifdef WITH_MPI
       , myComm() // initially attaches to MPI_COMM_WORLD
 #endif
@@ -1942,7 +1943,8 @@ namespace Gambit
                 ssPPID << lastPointID;
                 map_str_str lastpoint;
                 lastpoint["lastPointID"] = ssPPID.str();
-                buffermaster.print_metadata(lastpoint, true);
+                if (use_metadata)
+                    buffermaster.print_metadata(lastpoint, true);
 
             }
 
@@ -2189,6 +2191,7 @@ namespace Gambit
 
       if(!rank)
       {
+        use_metadata = true;
         // Forward the print information on to the master buffer manager object
         buffermaster.print_metadata(datasets);
       }

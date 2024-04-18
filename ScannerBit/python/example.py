@@ -37,21 +37,23 @@ myscan = scan.scan(True)
 settings = {
 "Parameters": {
   "model1": {
-    "x": None,
+    "x": {
+      "range": [-10.0, 10.0]
+      }
     }
   },
-"Priors": {
-  "x_prior": {
-    "prior_type": 'flat',
-    "parameters": ['model1::x'],
-    "range": [1.0, 40.0],
-    }
-  },
+#"Priors": {
+  #"x_prior": {
+    #"prior_type": 'flat',
+    #"parameters": ['model1::x'],
+    #"range": [-10.0, 10.0],
+    #}
+  #},
 "Printer": {
   "printer": "hdf5",
   "options": {
     "output_file": "results.hdf5",
-    "group": "/",
+    "group": "/data",
     "delete_file_on_restart": True,
     }
   },
@@ -63,6 +65,12 @@ settings = {
       "tolerance": 1.003,
       "kwalk_ratio": 0.9,
       "projection_dimension": 4
+      },
+    "multinest":{
+      "plugin": "multinest",
+      "like": "LogLike",
+      "nlive": 2000,
+      "tol": 0.1
       }
     },    
   "use_scanner": "twalk",

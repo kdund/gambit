@@ -23,6 +23,7 @@
 
 #include "gambit/Printers/printers/hdf5reader.hpp"
 #include "gambit/Printers/printers/hdf5printer.hpp"
+#include "gambit/Utils/util_functions.hpp"
 
 namespace Gambit
 {
@@ -64,7 +65,7 @@ namespace Gambit
        out = tmp_out;
        return tmp_ret;
      }
-
+#ifndef SCANNER_STANDALONE
      bool HDF5Reader::_retrieve(ModelParameters& out, const std::string& modelname, const uint rank, const ulong pointID)
      {
         bool is_valid = true;
@@ -528,7 +529,7 @@ namespace Gambit
         return is_valid;
      }
 
-
+#endif
      bool HDF5Reader::_retrieve(std::vector<double>& /*out*/,  const std::string& /*label*/, const uint /*rank*/, const ulong /*pointID*/)
      { printer_error().raise(LOCAL_INFO,"NOT YET IMPLEMENTED"); return false; }
      bool HDF5Reader::_retrieve(map_str_dbl& /*out*/,          const std::string& /*label*/, const uint /*rank*/, const ulong /*pointID*/)
@@ -545,11 +546,11 @@ namespace Gambit
      { printer_error().raise(LOCAL_INFO,"NOT YET IMPLEMENTED"); return false; }
      bool HDF5Reader::_retrieve(map_intpair_dbl& /*out*/,      const std::string& /*label*/, const uint /*rank*/, const ulong /*pointID*/)
      { printer_error().raise(LOCAL_INFO,"NOT YET IMPLEMENTED"); return false; }
-     bool HDF5Reader::_retrieve(flav_prediction& /*out*/,      const std::string& /*label*/, const uint /*rank*/, const ulong /*pointID*/)
-     { printer_error().raise(LOCAL_INFO,"NOT YET IMPLEMENTED"); return false; }
-
+     
      #ifndef SCANNER_STANDALONE // All the types inside HDF5_BACKEND_TYPES need to go inside this def guard.
-
+     
+       bool HDF5Reader::_retrieve(flav_prediction& /*out*/,      const std::string& /*label*/, const uint /*rank*/, const ulong /*pointID*/)
+       { printer_error().raise(LOCAL_INFO,"NOT YET IMPLEMENTED"); return false; }
        bool HDF5Reader::_retrieve(DM_nucleon_couplings& /*out*/, const std::string& /*label*/, const uint /*rank*/, const ulong /*pointID*/)
        { printer_error().raise(LOCAL_INFO,"NOT YET IMPLEMENTED"); return false; }
        bool HDF5Reader::_retrieve(BBN_container& /*out*/, const std::string& /*label*/, const uint /*rank*/, const ulong /*pointID*/)

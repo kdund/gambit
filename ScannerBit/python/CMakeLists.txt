@@ -30,9 +30,11 @@ if(PYTHONINTERP_FOUND)# AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
     
      set(scan_boost_module_include_dirs
         ${GAMBIT_INCDIRS}
+        ${EIGEN3_INCLUDE_DIR}
         ${mkpath_INCLUDE_DIR}
         ${MPI_C_INCLUDE_PATH}
         ${MPI_CXX_INCLUDE_PATH}
+        ${SQLite3_INCLUDE_DIRS}
         ${HDF5_INCLUDE_DIR}
         ${HDF5_INCLUDE_DIRS}
         ${yaml_INCLUDE_DIR}
@@ -106,9 +108,11 @@ if(PYTHONINTERP_FOUND)# AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
     
     set(scan_module_include_dirs
         ${GAMBIT_INCDIRS}
+        ${EIGEN3_INCLUDE_DIR}
         ${mkpath_INCLUDE_DIR}
         ${MPI_C_INCLUDE_PATH}
         ${MPI_CXX_INCLUDE_PATH}
+        ${SQLite3_INCLUDE_DIRS}
         ${HDF5_INCLUDE_DIR}
         ${HDF5_INCLUDE_DIRS}
         ${PROJECT_SOURCE_DIR}/contrib/pybind11/include
@@ -135,7 +139,7 @@ if(PYTHONINTERP_FOUND)# AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
     
     set(scan_module_rpaths
     )
-
+    message("akld;sjf;kladsfjkasdl;kjjkl;sdafjkl;fsdjkl;asdfjkl;fsadjkl;jklefs ${CMAKE_CXX_FLAGS}")
     add_library(scan_python SHARED ${scan_module_sources} ${scan_module_headers} )
     
     target_link_libraries(scan_python ${scan_module_libraries})
@@ -156,6 +160,7 @@ if(PYTHONINTERP_FOUND)# AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
         set_target_properties(scan_python PROPERTIES 
                                             #CXX_VISIBILITY_PRESET default
                                             #VISIBILITY_INLINES_HIDDEN FALSE
+                                            COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -g"
                                             INSTALL_RPATH "${scan_module_rpaths}"
                                             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                                             LIBRARY_OUTPUT_NAME "ScannerBit"
