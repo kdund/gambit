@@ -139,7 +139,7 @@ if(PYTHONINTERP_FOUND)# AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
     
     set(scan_module_rpaths
     )
-    message("akld;sjf;kladsfjkasdl;kjjkl;sdafjkl;fsdjkl;asdfjkl;fsadjkl;jklefs ${CMAKE_CXX_FLAGS}")
+
     add_library(scan_python SHARED ${scan_module_sources} ${scan_module_headers} )
     
     target_link_libraries(scan_python ${scan_module_libraries})
@@ -160,7 +160,6 @@ if(PYTHONINTERP_FOUND)# AND PYTHONLIBS_FOUND)# AND NUMPY_FOUND)
         set_target_properties(scan_python PROPERTIES 
                                             #CXX_VISIBILITY_PRESET default
                                             #VISIBILITY_INLINES_HIDDEN FALSE
-                                            COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -g"
                                             INSTALL_RPATH "${scan_module_rpaths}"
                                             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                                             LIBRARY_OUTPUT_NAME "ScannerBit"
