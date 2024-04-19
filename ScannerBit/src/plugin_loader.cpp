@@ -57,7 +57,10 @@ namespace Gambit
 
         namespace Plugins
         {
-
+            
+            // Set the root directory relative to which we should search for various config files
+            static const std::string root_path(Utils::GAMBIT_root_dir());
+            
             /*********************************************/
             /************** PYTHON STUFF *****************/
             /*********************************************/
@@ -128,7 +131,7 @@ namespace Gambit
                     guard = nullptr;
                 }
                 {
-                    std::string path = std::string(GAMBIT_DIR "/ScannerBit/src/") + type + "s/python/plugins";
+                    std::string path = std::string(root_path + "/ScannerBit/src/") + type + "s/python/plugins";
                     auto sys_list = py::list(py::module::import("sys").attr("path"));
                     sys_list.append(py::cast(path));
 
@@ -342,7 +345,7 @@ namespace Gambit
                 return table.str();
             }
 
-            Plugin_Loader::Plugin_Loader() : path(GAMBIT_DIR "/ScannerBit/lib/")//, python_plugin_map(pyplugin_info())
+            Plugin_Loader::Plugin_Loader() : path(root_path + "/ScannerBit/lib/")//, python_plugin_map(pyplugin_info())
             {
                 std::string p_str;
                 std::ifstream lib_list(path + "plugin_libraries.list");
@@ -557,7 +560,7 @@ namespace Gambit
 
             std::vector<std::string> Plugin_Loader::list_prior_groups() const
             {
-                YAML::Node node = YAML::LoadFile(GAMBIT_DIR "/config/priors.dat");
+                YAML::Node node = YAML::LoadFile(root_path + "/config/priors.dat");
                 std::vector<std::string> vec;
 
                 for(auto &&n : node)
@@ -573,7 +576,7 @@ namespace Gambit
 
             std::string Plugin_Loader::print_priors(const std::string &prior_group) const
             {
-                YAML::Node node = YAML::LoadFile(GAMBIT_DIR "/config/priors.dat");
+                YAML::Node node = YAML::LoadFile(root_path + "/config/priors.dat");
                 std::stringstream out;
 
                 if (prior_group == "priors")

@@ -21,6 +21,7 @@
 #include "gambit/ScannerBit/printable_types.hpp"
 
 #ifndef SCANNER_STANDALONE
+
 #define ASCII_TYPES                         \
   SCANNER_PRINTABLE_TYPES                   \
   (std::string)                             \
