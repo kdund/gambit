@@ -216,11 +216,13 @@ namespace Gambit
     /// Return the best log likelihood
     /// @note Return value is missing the log(n_obs!) terms (n_SR of them) which cancel in LLR calculation
     /// @todo Pass in the cov, and compute the fixed evals, evecs, and corr matrix as fixed params in here? Via a helper function to reduce duplication
+    /// @note: marginaliser not used, but added to match function signature with marg_loglike_cov
     double profile_loglike_cov(const Options& runOptions,
                                const Eigen::ArrayXd& n_preds,
                                const Eigen::ArrayXd& n_obss,
                                const Eigen::ArrayXd& sqrtevals,
-                               const Eigen::MatrixXd& evecs)
+                               const Eigen::MatrixXd& evecs,
+                               double (*/*marginaliser*/)(const int&, const double&, const double&, const double&))
     {
       // Number of signal regions
       const size_t nSR = n_obss.size();
@@ -312,31 +314,16 @@ namespace Gambit
 
     double marg_loglike_nulike1sr(const Eigen::ArrayXd& n_preds,
                                   const Eigen::ArrayXd& n_obss,
-                                  const Eigen::ArrayXd& sqrtevals)
+                                  const Eigen::ArrayXd& sqrtevals,
+                                  double (*marginaliser)(const int&, const double&, const double&, const double&))
     {
       assert(n_preds.size() == 1);
       assert(n_obss.size() == 1);
       assert(sqrtevals.size() == 1);
 
-      // TODO: Find a neater solution then splitting based on runoptions from stolen pipes
-      if (Pipes::calc_LHC_LogLikes_full::runOptions->hasKey("use_marginalising"))
-      {
-        auto marginaliser = (*Pipes::calc_LHC_LogLikes_full::BEgroup::lnlike_marg_poisson == "lnlike_marg_poisson_lognormal_error")
-        ? Pipes::calc_LHC_LogLikes_full::BEreq::lnlike_marg_poisson_lognormal_error : Pipes::calc_LHC_LogLikes_full::BEreq::lnlike_marg_poisson_gaussian_error;
-
-        // Setting bkg above zero to avoid nulike special cases
-        const double sr_margll = marginaliser((int) n_obss(0), 0.001, n_preds(0), sqrtevals(0)/n_preds(0));
-        return sr_margll;
-      }
-      else
-      {
-        auto marginaliser = (*Pipes::calc_LHC_LogLikes::BEgroup::lnlike_marg_poisson == "lnlike_marg_poisson_lognormal_error")
-        ? Pipes::calc_LHC_LogLikes::BEreq::lnlike_marg_poisson_lognormal_error : Pipes::calc_LHC_LogLikes::BEreq::lnlike_marg_poisson_gaussian_error;
-
-        // Setting bkg above zero to avoid nulike special cases
-        const double sr_margll = marginaliser((int) n_obss(0), 0.001, n_preds(0), sqrtevals(0)/n_preds(0));
-        return sr_margll;
-      }
+      // Setting bkg above zero to avoid nulike special cases
+      const double sr_margll = marginaliser((int) n_obss(0), 0.001, n_preds(0), sqrtevals(0)/n_preds(0));
+      return sr_margll;
 
     }
 
@@ -345,7 +332,8 @@ namespace Gambit
                             const Eigen::ArrayXd& n_preds,
                             const Eigen::ArrayXd& n_obss,
                             const Eigen::ArrayXd& sqrtevals,
-                            const Eigen::MatrixXd& evecs)
+                            const Eigen::MatrixXd& evecs,
+                            double (*marginaliser)(const int&, const double&, const double&, const double&))
     {
       // Number of signal regions
       const size_t nSR = n_obss.size();
@@ -357,7 +345,7 @@ namespace Gambit
       static const bool   NULIKE1SR = runOptions.getValueOrDef<bool>(true, "nuisance_marg_nulike1sr");
 
       // Optionally use nulike's more careful 1D marginalisation for one-SR cases
-      if (NULIKE1SR && nSR == 1) return marg_loglike_nulike1sr(n_preds, n_obss, sqrtevals);
+      if (NULIKE1SR && nSR == 1) return marg_loglike_nulike1sr(n_preds, n_obss, sqrtevals, marginaliser);
 
       // Dynamic convergence control & test has_and_variables
       size_t nsample = NSAMPLE_INPUT;
@@ -528,6 +516,7 @@ namespace Gambit
     void fill_analysis_loglikes(const AnalysisData& ana_data, 
                                 AnalysisLogLikes& ana_loglikes,
                                 bool use_marg,
+                                double (*marginaliser)(const int&, const double&, const double&, const double&),
                                 bool has_and_use_covar,
                                 bool combine_nocovar_SRs,
                                 const Options& runOptions,
@@ -626,8 +615,8 @@ namespace Gambit
 
         // Compute the single, correlated analysis-level DLL as the difference of s+b and b (partial) LLs
         /// @todo Only compute this once per run
-        const double ll_b = marg_prof_fn(runOptions, n_pred_b, n_obs, sqrtEb, Vb);
-        const double ll_sb = marg_prof_fn(runOptions, n_pred_sb, n_obs, sqrtEsb, Vsb);
+        const double ll_b = marg_prof_fn(runOptions, n_pred_b, n_obs, sqrtEb, Vb, marginaliser);
+        const double ll_sb = marg_prof_fn(runOptions, n_pred_sb, n_obs, sqrtEsb, Vsb, marginaliser);
         dll = ll_sb - ll_b;
 
         // Write result to the ana_loglikes reference
@@ -711,11 +700,11 @@ namespace Gambit
 
           // Compute this SR's DLLs as the differences of s+b and b (partial) LLs
           /// @todo Only compute this once per run
-          const double ll_b_exp = marg_prof_fn(runOptions, n_preds_b, n_preds_b_int, sqrtevals_b, dummy);
+          const double ll_b_exp = marg_prof_fn(runOptions, n_preds_b, n_preds_b_int, sqrtevals_b, dummy, marginaliser);
           /// @todo Only compute this once per run
-          const double ll_b_obs = marg_prof_fn(runOptions, n_preds_b, n_obss, sqrtevals_b, dummy);
-          const double ll_sb_exp = marg_prof_fn(runOptions, n_preds_sb, n_preds_b_int, sqrtevals_sb, dummy);
-          const double ll_sb_obs = marg_prof_fn(runOptions, n_preds_sb, n_obss, sqrtevals_sb, dummy);
+          const double ll_b_obs = marg_prof_fn(runOptions, n_preds_b, n_obss, sqrtevals_b, dummy, marginaliser);
+          const double ll_sb_exp = marg_prof_fn(runOptions, n_preds_sb, n_preds_b_int, sqrtevals_sb, dummy, marginaliser);
+          const double ll_sb_obs = marg_prof_fn(runOptions, n_preds_sb, n_obss, sqrtevals_sb, dummy, marginaliser);
           const double dll_exp = ll_sb_exp - ll_b_exp;
           const double dll_obs = ll_sb_obs - ll_b_obs;
 
@@ -873,6 +862,7 @@ namespace Gambit
                                   bool use_fulllikes, 
                                   AnalysisDataPointers& ana,
                                   const Options& runOptions,
+                                  double (*marginaliser)(const int&, const double&, const double&, const double&),
                                   bool skip_calc,
                                   bool (*FullLikes_FileExists)(const str&),
                                   int (*FullLikes_ReadIn)(const str&, const str&),
@@ -1002,7 +992,7 @@ namespace Gambit
         // Now perform the actual loglikes compuations for this analysis
         // 
         // First do standard loglike calculation
-        fill_analysis_loglikes(ana_data, ana_loglikes, use_marg, use_covar && has_covar, combine_nocovar_SRs, runOptions, use_fulllikes, FullLikes_FileExists, FullLikes_ReadIn, FullLikes_Evaluate);
+        fill_analysis_loglikes(ana_data, ana_loglikes, use_marg, marginaliser, use_covar && has_covar, combine_nocovar_SRs, runOptions, use_fulllikes, FullLikes_FileExists, FullLikes_ReadIn, FullLikes_Evaluate);
 
         // Then do alternative loglike calculations:
         if (calc_noerr_loglikes)
@@ -1014,7 +1004,7 @@ namespace Gambit
           {
             ana_data_mod[SR].n_sig_MC_stat = 0.;
           }
-          fill_analysis_loglikes(ana_data_mod, ana_loglikes, use_marg, use_covar && has_covar, combine_nocovar_SRs, runOptions, use_fulllikes, FullLikes_FileExists, FullLikes_ReadIn, FullLikes_Evaluate,"noerr");
+          fill_analysis_loglikes(ana_data_mod, ana_loglikes, use_marg, marginaliser, use_covar && has_covar, combine_nocovar_SRs, runOptions, use_fulllikes, FullLikes_FileExists, FullLikes_ReadIn, FullLikes_Evaluate,"noerr");
         }
         if (calc_expected_loglikes)
         {
@@ -1025,7 +1015,7 @@ namespace Gambit
           {
             ana_data_mod[SR].n_obs = ana_data_mod[SR].n_bkg;
           }
-          fill_analysis_loglikes(ana_data_mod, ana_loglikes, use_marg, use_covar && has_covar, combine_nocovar_SRs, runOptions, use_fulllikes, FullLikes_FileExists, FullLikes_ReadIn, FullLikes_Evaluate, "expected");
+          fill_analysis_loglikes(ana_data_mod, ana_loglikes, use_marg, marginaliser, use_covar && has_covar, combine_nocovar_SRs, runOptions, use_fulllikes, FullLikes_FileExists, FullLikes_ReadIn, FullLikes_Evaluate, "expected");
         }
         if (calc_expected_noerr_loglikes)
         {
@@ -1038,7 +1028,7 @@ namespace Gambit
             ana_data_mod[SR].n_obs = ana_data_mod[SR].n_bkg;
             ana_data_mod[SR].n_sig_MC_stat = 0.;
           }
-          fill_analysis_loglikes(ana_data_mod, ana_loglikes, use_marg, use_covar && has_covar, combine_nocovar_SRs, runOptions, use_fulllikes, FullLikes_FileExists, FullLikes_ReadIn, FullLikes_Evaluate, "expected_noerr");
+          fill_analysis_loglikes(ana_data_mod, ana_loglikes, use_marg, marginaliser, use_covar && has_covar, combine_nocovar_SRs, runOptions, use_fulllikes, FullLikes_FileExists, FullLikes_ReadIn, FullLikes_Evaluate, "expected_noerr");
         }
         if (calc_scaledsignal_loglikes)
         {
@@ -1049,7 +1039,7 @@ namespace Gambit
           {
             ana_data_mod[SR].n_sig_scaled *= signal_scalefactor;
           }
-          fill_analysis_loglikes(ana_data_mod, ana_loglikes, use_marg, use_covar && has_covar, combine_nocovar_SRs, runOptions, use_fulllikes, FullLikes_FileExists, FullLikes_ReadIn, FullLikes_Evaluate, "scaledsignal");
+          fill_analysis_loglikes(ana_data_mod, ana_loglikes, use_marg, marginaliser, use_covar && has_covar, combine_nocovar_SRs, runOptions, use_fulllikes, FullLikes_FileExists, FullLikes_ReadIn, FullLikes_Evaluate, "scaledsignal");
         }
 
       } // end analysis loop
@@ -1070,16 +1060,17 @@ namespace Gambit
       //
       /// @todo Needs more sophistication once we add analyses that don't use event generation.
       bool skip_calc = (not Dep::RunMC->event_gen_BYPASS && (not Dep::RunMC->event_generation_began || Dep::RunMC->exceeded_maxFailedEvents) );
-      
-      
+
       // Get a pointer to the FullLikes backend functions.
       bool (*FileExists)(const str&) = BEreq::FullLikes_FileExists.pointer();
       int (*ReadIn)(const str&, const str&) = BEreq::FullLikes_ReadIn.pointer();
       double (*Evaluate)(std::map<str,double>&,const str&) = BEreq::FullLikes_Evaluate.pointer();
-      
+
+      double (*marginaliser)(const int&, const double&, const double&, const double&) = (*Pipes::calc_LHC_LogLikes_full::BEgroup::lnlike_marg_poisson == "lnlike_marg_poisson_lognormal_error") ? Pipes::calc_LHC_LogLikes_full::BEreq::lnlike_marg_poisson_lognormal_error.pointer() : Pipes::calc_LHC_LogLikes_full::BEreq::lnlike_marg_poisson_gaussian_error.pointer();
+
       // Call the calc_LHC_LogLikes
-      calc_LHC_LogLikes_common(result, use_fulllikes, ana, *runOptions, skip_calc, FileExists, ReadIn, Evaluate);
-                               
+      calc_LHC_LogLikes_common(result, use_fulllikes, ana, *runOptions, marginaliser, skip_calc, FileExists, ReadIn, Evaluate);
+
     }
 
     /// Loop over all analyses and fill a map of AnalysisLogLikes objectss
@@ -1087,20 +1078,21 @@ namespace Gambit
     {
       using namespace Pipes::calc_LHC_LogLikes;
       AnalysisDataPointers ana = *(Dep::AllAnalysisNumbers);
-      
+
       bool use_fulllikes = false;
-    
+
       // If no events have been generated (xsec veto) or too many events have
       // failed, short-circut the loop and return delta log-likelihood = 0 for
       // every SR in each analysis.
       //
       /// @todo Needs more sophistication once we add analyses that don't use event generation.
       bool skip_calc = (not Dep::RunMC->event_gen_BYPASS && (not Dep::RunMC->event_generation_began || Dep::RunMC->exceeded_maxFailedEvents) );
-      
+
+      double (*marginaliser)(const int&, const double&, const double&, const double&) = (*Pipes::calc_LHC_LogLikes::BEgroup::lnlike_marg_poisson == "lnlike_marg_poisson_lognormal_error") ? Pipes::calc_LHC_LogLikes::BEreq::lnlike_marg_poisson_lognormal_error.pointer() : Pipes::calc_LHC_LogLikes::BEreq::lnlike_marg_poisson_gaussian_error.pointer();
 
       // Call the calc_LHC_LogLikes
-      calc_LHC_LogLikes_common(result, use_fulllikes, ana, *runOptions, skip_calc, nullptr, nullptr, nullptr);
-      
+      calc_LHC_LogLikes_common(result, use_fulllikes, ana, *runOptions, marginaliser, skip_calc, nullptr, nullptr, nullptr);
+
     }
 
 

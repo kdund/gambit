@@ -194,6 +194,7 @@ namespace Gambit
       bool (*FullLikes_FileExists)(const str&);
       int (*FullLikes_ReadIn)(const str&, const str&);
       double (*FullLikes_Evaluate)(std::map<str,double>&,const str&);
+      double (*marginaliser)(const int&, const double&, const double&, const double&);
     };
 
 
@@ -206,7 +207,7 @@ namespace Gambit
     // =========== Forward declarations ===========
 
     /// Forward declaration of function in LHC_likelihoods
-    void fill_analysis_loglikes(const AnalysisData&, AnalysisLogLikes&, bool, bool, bool, const Options&, bool, bool (*FullLikes_FileExists)(const str&), int (*FullLikes_ReadIn)(const str&, const str&), double (*FullLikes_Evaluate)(std::map<str,double>&,const str&), const std::string);
+    void fill_analysis_loglikes(const AnalysisData&, AnalysisLogLikes&, bool, double (*)(const int&, const double&, const double&, const double&), bool, bool, const Options&, bool, bool (*FullLikes_FileExists)(const str&), int (*FullLikes_ReadIn)(const str&, const str&), double (*FullLikes_Evaluate)(std::map<str,double>&,const str&), const std::string);
 
     /// Forward declarations of functions in this file
     void DMEFT_fill_analysis_info_map();
@@ -1030,7 +1031,7 @@ namespace Gambit
         // Compute the combined analysis loglike and add it to total_loglike
         AnalysisLogLikes analoglikes;
         analoglikes.initialize(adata);
-        fill_analysis_loglikes(adata, analoglikes, fpars->use_marg, fpars->use_covar && has_covar, fpars->combine_nocovar_SRs, fpars->runOptions, fpars->use_fulllikes, fpars->FullLikes_FileExists, fpars->FullLikes_ReadIn, fpars->FullLikes_Evaluate, "");
+        fill_analysis_loglikes(adata, analoglikes, fpars->use_marg, fpars->marginaliser, fpars->use_covar && has_covar, fpars->combine_nocovar_SRs, fpars->runOptions, fpars->use_fulllikes, fpars->FullLikes_FileExists, fpars->FullLikes_ReadIn, fpars->FullLikes_Evaluate, "");
         total_loglike += analoglikes.combination_loglike;
       }
 
@@ -1066,39 +1067,36 @@ namespace Gambit
         return;
       }
 
+      // If using the calc_LHC_LogLikes_full capability, turn on full likes
+      bool use_fulllikes = (ColliderBit::Functown::calc_LHC_LogLikes_full.status() == FunctorStatus::Active);
+
       // Steal the list of skipped analyses from the options from the "calc_combined_LHC_LogLike" function
       std::vector<str> default_skip_analyses;  // The default is empty lists of analyses to skip
       static const std::vector<str> skip_analyses = Pipes::calc_combined_LHC_LogLike::runOptions->getValueOrDef<std::vector<str> >(default_skip_analyses, "skip_analyses");
 
       // Steal settings from either the "calc_LHC_LogLikes" or "calc_LHC_LogLikes_full" function
-      // depending on which is used
-      // NOTE: This requires that the use_marginalising is always present
-      // TODO: Find a neater solution without required yaml options
+      // depending on which is active
       // This also pulls the function pointers for the fulllikes backend from the stolen pipe
       Options calc_LHC_LogLikes_runOptions;
       bool (*FullLikes_FileExists)(const str&);
       int (*FullLikes_ReadIn)(const str&, const str&);
       double (*FullLikes_Evaluate)(std::map<str,double>&,const str&);
-      bool use_fulllikes;
-      if (Pipes::calc_LHC_LogLikes_full::runOptions->hasKey("use_marginalising"))
+      double (*marginaliser)(const int&, const double&, const double&, const double&);
+      if (use_fulllikes)
       {
         calc_LHC_LogLikes_runOptions = *Pipes::calc_LHC_LogLikes_full::runOptions;
-        use_fulllikes = true;
         FullLikes_FileExists = Pipes::calc_LHC_LogLikes_full::BEreq::FullLikes_FileExists.pointer();
         FullLikes_ReadIn = Pipes::calc_LHC_LogLikes_full::BEreq::FullLikes_ReadIn.pointer();
         FullLikes_Evaluate = Pipes::calc_LHC_LogLikes_full::BEreq::FullLikes_Evaluate.pointer();
-      }
-      else if (Pipes::calc_LHC_LogLikes::runOptions->hasKey("use_marginalising"))
-      {
-        calc_LHC_LogLikes_runOptions = *Pipes::calc_LHC_LogLikes::runOptions;
-        use_fulllikes = false;
-        FullLikes_FileExists = nullptr;
-        FullLikes_ReadIn = nullptr;
-        FullLikes_Evaluate = nullptr;
+        marginaliser = (*Pipes::calc_LHC_LogLikes_full::BEgroup::lnlike_marg_poisson == "lnlike_marg_poisson_lognormal_error") ? Pipes::calc_LHC_LogLikes_full::BEreq::lnlike_marg_poisson_lognormal_error.pointer() : Pipes::calc_LHC_LogLikes_full::BEreq::lnlike_marg_poisson_gaussian_error.pointer();
       }
       else
       {
-        ColliderBit_error().raise(LOCAL_INFO, "ERROR! calc_DMEFT_profiled_LHC_nuisance_params requires that the calc_LHC_LogLikes or calc_LHC_LogLikes_full capability is provided the \"use_marginalising\" setting.");
+        calc_LHC_LogLikes_runOptions = *Pipes::calc_LHC_LogLikes::runOptions;
+        FullLikes_FileExists = nullptr;
+        FullLikes_ReadIn = nullptr;
+        FullLikes_Evaluate = nullptr;
+        marginaliser = (*Pipes::calc_LHC_LogLikes::BEgroup::lnlike_marg_poisson == "lnlike_marg_poisson_lognormal_error") ? Pipes::calc_LHC_LogLikes::BEreq::lnlike_marg_poisson_lognormal_error.pointer() : Pipes::calc_LHC_LogLikes::BEreq::lnlike_marg_poisson_gaussian_error.pointer();
       }
 
       static const bool use_covar = calc_LHC_LogLikes_runOptions.getValueOrDef<bool>(true, "use_covariances");
@@ -1106,7 +1104,6 @@ namespace Gambit
       static const bool use_marg = calc_LHC_LogLikes_runOptions.getValueOrDef<bool>(false, "use_marginalising");
       // Use the naive sum of SR loglikes for analyses without known correlations?
       static const bool combine_nocovar_SRs = calc_LHC_LogLikes_runOptions.getValueOrDef<bool>(false, "combine_SRs_without_covariances");
-
 
       // Clear previous result map
       result.clear();
@@ -1146,6 +1143,7 @@ namespace Gambit
       fpars.FullLikes_FileExists = FullLikes_FileExists;
       fpars.FullLikes_ReadIn = FullLikes_ReadIn;
       fpars.FullLikes_Evaluate = FullLikes_Evaluate;
+      fpars.marginaliser = marginaliser;
 
       // Create a variable to store the best-fit loglike
       double minus_loglike_bestfit = 50000.;
