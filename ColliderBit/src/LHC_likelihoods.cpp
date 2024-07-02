@@ -1234,7 +1234,7 @@ namespace Gambit
 
       // Read analysis names from the yaml file
       std::vector<str> default_skip_analyses;  // The default is empty lists of analyses to skip
-      static const std::vector<str> skip_analyses = runOptions->getValueOrDef<std::vector<str> >(default_skip_analyses, "skip_analyses");
+      static const std::vector<str> skip_analyses = Downstream::subcaps->getValueOrDef<std::vector<str> >(default_skip_analyses, "skip_analyses");
 
       // If too many events have failed, do the conservative thing and return delta log-likelihood = 0
       if (Dep::RunMC->exceeded_maxFailedEvents)

@@ -246,8 +246,8 @@ namespace Gambit
 
     /// Forward declarations of functions in this file
     void DMEFT_fill_analysis_info_map();
-    void DMsimp_fill_analysis_info_map(std::map<str,str>, std::map<str,std::vector<str>>, int);
-    void SubGeVDM_fill_analysis_info_map(std::map<str,str>, std::map<str,std::vector<str>>);
+    void DMsimp_fill_analysis_info_map(std::map<str,str>, std::map<str,std::vector<str>>, int, std::vector<str>);
+    void SubGeVDM_fill_analysis_info_map(std::map<str,str>, std::map<str,std::vector<str>>, std::vector<str>);
 
     void DMEFT_results(AnalysisDataPointers&);
     void DMEFT_results_profiled(AnalysisDataPointers&);
@@ -1196,9 +1196,9 @@ namespace Gambit
       // If using the calc_LHC_LogLikes_full capability, turn on full likes
       bool use_fulllikes = (ColliderBit::Functown::calc_LHC_LogLikes_full.status() == FunctorStatus::Active);
 
-      // Steal the list of skipped analyses from the options from the "calc_combined_LHC_LogLike" function
+      // Access the list of skipped analyses from the sub-capability
       std::vector<str> default_skip_analyses;  // The default is empty lists of analyses to skip
-      static const std::vector<str> skip_analyses = Pipes::calc_combined_LHC_LogLike::runOptions->getValueOrDef<std::vector<str> >(default_skip_analyses, "skip_analyses");
+      static const std::vector<str> skip_analyses = Downstream::subcaps->getValueOrDef<std::vector<str> >(default_skip_analyses, "skip_analyses");
 
       // Steal settings from either the "calc_LHC_LogLikes" or "calc_LHC_LogLikes_full" function
       // depending on which is active
@@ -1439,11 +1439,8 @@ namespace Gambit
     };
 
     /// A function for filling the analysis_info_map for the DMsimp models.
-    void DMsimp_fill_analysis_info_map(std::map<str,str> Analysis_data_path, std::map<str,std::vector<str>> Interpolation_columns, int Ndim)
+    void DMsimp_fill_analysis_info_map(std::map<str,str> Analysis_data_path, std::map<str,std::vector<str>> Interpolation_columns, int Ndim, std::vector<str> skip_analyses)
     {
-
-      std::vector<str> default_skip_analyses;  // The default is empty lists of analyses to skip
-      static const std::vector<str> skip_analyses = Pipes::calc_combined_LHC_LogLike::runOptions->getValueOrDef<std::vector<str> >(default_skip_analyses, "skip_analyses");
 
       // Helper variables
       str current_analysis_name;
@@ -1699,7 +1696,10 @@ namespace Gambit
       // and the thread_local analysis_data_map
       if (first)
       {
-        DMsimp_fill_analysis_info_map(Analysis_data_path,Interpolation_columns, Ndim);
+        std::vector<str> default_skip_analyses;  // The default is empty lists of analyses to skip
+        static const std::vector<str> skip_analyses = Downstream::subcaps->getValueOrDef<std::vector<str> >(default_skip_analyses, "skip_analyses");
+
+        DMsimp_fill_analysis_info_map(Analysis_data_path,Interpolation_columns, Ndim, skip_analyses);
 
         for (const std::pair<const str, Model_analysis_info>& aname_ainfo_pair : analysis_info_map)
         {
@@ -2123,11 +2123,8 @@ namespace Gambit
     //// NEW BEAM-DUMP Functions ////
 
     /// A function for filling the analysis_info_map for the SubGeVDM_fermion and SubGeVDM_scalar models.
-    void SubGeVDM_fill_analysis_info_map(std::map<str,str> Analysis_data_path, std::map<str,std::vector<str>> Interpolation_columns)
+    void SubGeVDM_fill_analysis_info_map(std::map<str,str> Analysis_data_path, std::map<str,std::vector<str>> Interpolation_columns, std::vector<str> skip_analyses)
     {
-
-      std::vector<str> default_skip_analyses;  // The default is empty lists of analyses to skip
-      static const std::vector<str> skip_analyses = Pipes::calc_combined_LHC_LogLike::runOptions->getValueOrDef<std::vector<str> >(default_skip_analyses, "skip_analyses");
 
       // Helper variables
       str current_analysis_name;
@@ -2264,7 +2261,10 @@ namespace Gambit
       // and the thread_local analysis_data_map
       if (first)
       {
-        SubGeVDM_fill_analysis_info_map(Analysis_data_path,Interpolation_columns);
+        std::vector<str> default_skip_analyses;  // The default is empty lists of analyses to skip
+        static const std::vector<str> skip_analyses = Downstream::subcaps->getValueOrDef<std::vector<str> >(default_skip_analyses, "skip_analyses");
+      
+        SubGeVDM_fill_analysis_info_map(Analysis_data_path,Interpolation_columns, skip_analyses);
 
         for (const std::pair<const str, Model_analysis_info>& aname_ainfo_pair : analysis_info_map)
         {
