@@ -84,7 +84,7 @@ jswarm: |
       max_initialisation_attempts[10000]: Maximum number of times to try to find a valid vector for each slot in the initial population.
   #remove_newlines
       min_acceptable_value[0.9999*min]:   Minimum function value to accept for the initial generation if init_population_strategy > 0.
-  Here "min" is the valued extracted from the keyvalues section of the main yaml file corresponding to the
+  Here "min" is the valued extracted from the KeyValues section of the main yaml file corresponding to the
   "likelihood: model_invalid_for_lnlike_below" tag.
   #dont_remove_newlines
       verbosity[1]:                       Output verbosity: 0=only error messages, 1=basic info, 2=generation-level info, 3+=particle-level info
@@ -343,7 +343,7 @@ diver: |
       max_initialisation_attempts[10000]: Maximum number of times to try to find a valid vector for each slot in the initial population.
   #remove_newlines
       max_acceptable_value[-0.9999*min]:  Maximum function value to accept for the initial generation if init_population_strategy > 0, or (from 1.0.5) any generation if discard_unfit_points=T.
-  Here "min" is the valued extracted from the keyvalues section of the main yaml file corresponding to the
+  Here "min" is the valued extracted from the KeyValues section of the main yaml file corresponding to the
   "likelihood: model_invalid_for_lnlike_below" tag.
   #dont_remove_newlines
       verbosity[0]:                       Output verbosity: 0=only error messages, 1=basic info, 2=civ-level info, 3+=population info.
