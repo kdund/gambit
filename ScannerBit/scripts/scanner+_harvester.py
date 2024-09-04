@@ -939,10 +939,10 @@ endforeach()
 
 option(WITH_PYTHON_SCANNERBIT \"Build ScannerBit's Python interface when building ScannerBit\" OFF)
 if(WITH_PYTHON_SCANNERBIT)
-    message(\"${{BoldYellow}}-- Will build the ScannerBit python interface when building ScannerBit.${{ColourReset}}")
+    message(\"${{BoldYellow}}-- Enabling the ScannerBit_python_interface build target.${{ColourReset}}")
     add_subdirectory(python) 
 else()
-    message(\"${{BoldCyan}} X The ScannerBit python interface will not be included in the ScannerBit build. Use -DWITH_PYTHON_SCANNERBIT=ON to activate.${{ColourReset}}")
+    message(\"${{BoldCyan}} X The ScannerBit_python_interface build target is not activated. Use -DWITH_PYTHON_SCANNERBIT=ON to enable it.${{ColourReset}}")
 endif()
 """.format() # To include scan_python and scan_boost_python targets, for pyScannerBit interface. 
 

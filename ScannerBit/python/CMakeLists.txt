@@ -6,18 +6,18 @@ include(cmake/boost_python.cmake)
 
 if(PYTHONINTERP_FOUND)
 
-    if(VERBOSE_SCAN_PYTHON)
+    if(VERBOSE_SCANNERBIT_PYTHON_INTERFACE)
         message("${BoldYellow}Python extensive module Python deps:${ColourReset}")
         message("-- Python version string: ${PYTHON_VERSION_STRING}")
         message("-- Python include dirs: ${PYTHON_INCLUDE_DIRS}")
         message("-- Python executable: ${PYTHON_EXECUTABLE}")
-    endif(VERBOSE_SCAN_PYTHON)
+    endif(VERBOSE_SCANNERBIT_PYTHON_INTERFACE)
     
     if(HDF5_FOUND)
         add_definitions(-DWITH_HDF5)
     endif(HDF5_FOUND)
     
-    ################## scan_python ##################
+    ################## ScannerBit_python_interface ##################
     
     set(scan_module_libraries
         #${PYTHON_LIBRARIES}
@@ -59,12 +59,12 @@ if(PYTHONINTERP_FOUND)
     set(scan_module_rpaths
     )
 
-    add_library(scan_python SHARED ${scan_module_sources} ${scan_module_headers} )
+    add_library(ScannerBit_python_interface SHARED ${scan_module_sources} ${scan_module_headers} )
     
-    target_link_libraries(scan_python ${scan_module_libraries})
+    target_link_libraries(ScannerBit_python_interface ${scan_module_libraries})
 
     if(APPLE)
-        set_target_properties(scan_python PROPERTIES 
+        set_target_properties(ScannerBit_python_interface PROPERTIES 
                                             #CXX_VISIBILITY_PRESET default
                                             #VISIBILITY_INLINES_HIDDEN FALSE
                                             INSTALL_RPATH "${scan_module_rpaths}"
@@ -76,7 +76,7 @@ if(PYTHONINTERP_FOUND)
                                             PREFIX ""
                                             SUFFIX .so)
     else(APPLE)
-        set_target_properties(scan_python PROPERTIES 
+        set_target_properties(ScannerBit_python_interface PROPERTIES 
                                             #CXX_VISIBILITY_PRESET default
                                             #VISIBILITY_INLINES_HIDDEN FALSE
                                             INSTALL_RPATH "${scan_module_rpaths}"
@@ -88,7 +88,7 @@ if(PYTHONINTERP_FOUND)
                                             SUFFIX .so)
     endif(APPLE)
                                     
-    add_gambit_deps(scan_python)
+    add_gambit_deps(ScannerBit_python_interface)
     
     #################################################
 
