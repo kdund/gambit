@@ -504,7 +504,6 @@ namespace Gambit
             template<typename T>
             void Gather_single(T &sendbuf, std::vector<T> &recvbuf, int root)
             {
-                static const MPI_Datatype datatype = get_mpi_data_type<T>::type();
                 std::vector<T> vec_send;
                 vec_send.push_back(sendbuf);
                 Gather(vec_send,recvbuf,root);

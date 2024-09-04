@@ -399,7 +399,7 @@ namespace Gambit {
          if (first)
          {
             int ndim = boundSettings.nDims;
-            int nderived = boundSettings.nDerived;
+            // int nderived = boundSettings.nDerived;
 
             // Construct the inversed index map
             // map[polychord_hypercube] = {name, gambit_hypercube}
