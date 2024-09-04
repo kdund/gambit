@@ -836,7 +836,8 @@ public:
     {
         rotVec = matrix <double> (nin, nin);
         RandRot();
-        if (proj > num) proj = num;
+        if (proj > num) proj = num;        
+        if (proj <= 0) Gambit::Scanner::scan_error().raise(LOCAL_INFO, "TWalk: cannot use projection dimension <= 0");
         extra = num % proj;
         endVec = currentVec + num - extra;
         endEndVec = currentVec + num;

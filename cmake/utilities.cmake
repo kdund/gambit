@@ -277,8 +277,8 @@ macro(add_gambit_custom target filename HARVESTER DEPS)
                      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                      DEPENDS ${${HARVESTER}}
                              ${HARVEST_TOOLS}
-                             ${PROJECT_BINARY_DIR}/CMakeCache.txt
-                             ${${DEPS}})
+                             ${${DEPS}}
+                             ${CMAKE_BINARY_DIR}/CMakeCache.txt) #CMAKE_CACHEFILE_DIR is the same as CMAKE_BINARY_DIR
   add_custom_target(${target} DEPENDS ${CMAKE_BINARY_DIR}/${filename})
 endmacro()
 
@@ -449,7 +449,7 @@ function(add_standalone executablename)
                        DEPENDS modules_harvested
                                ${STANDALONE_FACILITATOR}
                                ${HARVEST_TOOLS}
-                               ${PROJECT_BINARY_DIR}/CMakeCache.txt)
+                               ${CMAKE_BINARY_DIR}/CMakeCache.txt) #CMAKE_CACHEFILE_DIR is the same as CMAKE_BINARY_DIR
 
     # All the standalones need linking to HepMC, if HepMC is not excluced.
     # TODO: Avoid this if possible.
@@ -570,6 +570,10 @@ function(add_standalone_tarballs modules version)
                                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/${module} ${dirname}/${module}
                                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/Logs ${dirname}/Logs
                                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/Utils ${dirname}/Utils
+                                      COMMAND ${CMAKE_COMMAND} -E remove ${dirname}/Utils/src/slhaea_helpers.cpp
+                                      COMMAND ${CMAKE_COMMAND} -E touch ${dirname}/Utils/src/slhaea_helpers.cpp
+                                      COMMAND ${CMAKE_COMMAND} -E remove ${dirname}/Utils/include/gambit/Utils/slhaea_helpers.hpp
+                                      COMMAND ${CMAKE_COMMAND} -E touch ${dirname}/Utils/include/gambit/Utils/slhaea_helpers.hpp
                                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/Printers ${dirname}/Printers
                                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/cmake ${dirname}/cmake
                                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/config ${dirname}/config
