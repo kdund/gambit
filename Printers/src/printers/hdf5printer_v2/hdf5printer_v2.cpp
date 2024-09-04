@@ -18,6 +18,7 @@
 ///
 ///  *********************************************
 //
+#include <chrono>
 #include <math.h>
 #include <limits>
 #include <iterator>
@@ -1420,6 +1421,7 @@ namespace Gambit
       , myRank(0)
       , mpiSize(1)
       , lastPointID(nullpoint)
+      , use_metadata(false)
 #ifdef WITH_MPI
       , myComm() // initially attaches to MPI_COMM_WORLD
 #endif
@@ -2191,6 +2193,7 @@ namespace Gambit
 
       if(!rank)
       {
+        use_metadata = true;
         // Forward the print information on to the master buffer manager object
         buffermaster.print_metadata(datasets);
       }

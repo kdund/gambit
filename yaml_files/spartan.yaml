@@ -84,7 +84,7 @@ Scanner:
     de:
       plugin: diver
       like: LogLike
-      NP: 5000
+      NP: 500
 
     multinest:
       plugin: multinest
@@ -109,6 +109,14 @@ Scanner:
       like:  LogLike
       print_parameters_in_native_output: true
       tol: 0.1
+
+    pso:
+      plugin: jswarm
+      like:  LogLike
+      NP: 400
+      adaptive_phi: true
+      adaptive_omega: true
+      verbosity: 2
 
     minuit2:
       plugin: minuit2
@@ -325,7 +333,6 @@ Scanner:
       run:
         min_num_live_points: 1000
         dlogz: 0.5
-
 
 ObsLikes:
 

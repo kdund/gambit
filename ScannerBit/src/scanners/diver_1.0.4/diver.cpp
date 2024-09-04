@@ -18,7 +18,7 @@
 #include <limits>
 #include <fstream>
 
-#include "gambit/ScannerBit/scanners/diver/1.0.4/diver.hpp"
+#include "gambit/ScannerBit/scanners/diver_1.0.4/diver.hpp"
 #include "gambit/Utils/yaml_options.hpp"
 #include "gambit/Utils/util_types.hpp"
 #include "gambit/Utils/util_functions.hpp"
@@ -144,6 +144,7 @@ scanner_plugin(diver, version(1, 0, 4))
 
     // Discrete parameters
     std::vector<int> discrete(nDiscrete, 0);                                                              // Indices of discrete parameters, Fortran style, i.e. starting at 1!!
+    //TODO Needs to be set automatically somehow?  Not yet sure how to deal with discrete parameters in GAMBIT.
 
     // Run Diver
     if (data.likelihood_function->getRank() == 0) cout << "Starting Diver run..." << std::endl;

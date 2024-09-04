@@ -116,6 +116,7 @@ namespace Gambit
 
   static const struct Mesons_masses
   {
+    Mesons_masses(){}
     static constexpr double pi0 = 0.135;          // neutral pion mass (GeV/c^2)
     static constexpr double pi_plus = 0.1396;     // charged pion mass (GeV/c^2)
     static constexpr double pi_minus = 0.1396;    // charged pion mass (GeV/c^2)
