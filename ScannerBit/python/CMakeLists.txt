@@ -1,6 +1,6 @@
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
-include(cmake/scan_python_utils.cmake)
+include(cmake/scannerbit_python_interface_utils.cmake)
 include(cmake/boost_python.cmake)
 #include(cmake/yaml.cmake)
 
