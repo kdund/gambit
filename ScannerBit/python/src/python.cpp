@@ -16,7 +16,7 @@
 #endif
 #include "interface.hpp"
 #include "python_utils.hpp"
-#include "run_scan.hpp"
+#include "python.hpp"
 
 namespace py = pybind11;
 namespace scanpy = Gambit::Scanner::Python;

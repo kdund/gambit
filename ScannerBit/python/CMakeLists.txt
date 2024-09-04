@@ -42,15 +42,15 @@ if(PYTHONINTERP_FOUND)
     )
     
     set(scan_module_headers
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/python.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/interface.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/python_utils.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/run_scan.hpp
     )
     
     set(scan_module_sources
         ${CMAKE_CURRENT_SOURCE_DIR}/src/python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/interface.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/diagnostics.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/run_scan.cpp
         $<TARGET_OBJECTS:ScannerBit>
         $<TARGET_OBJECTS:Printers>
         ${GAMBIT_BASIC_COMMON_OBJECTS}
