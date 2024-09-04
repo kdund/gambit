@@ -937,7 +937,13 @@ foreach (plugin ${{SCANNERBIT_PLUGINS}})
     add_dependencies(ScannerBit ${{plugin}})
 endforeach()
 
-add_subdirectory(python) # For scannerbit's python interface.
+option(WITH_PYTHON_SCANNERBIT \"Build ScannerBit's Python interface when building ScannerBit\" OFF)
+if(WITH_PYTHON_SCANNERBIT)
+    message(\"${{BoldYellow}}-- Will build the ScannerBit python interface when building ScannerBit.${{ColourReset}}")
+    add_subdirectory(python) 
+else()
+    message(\"${{BoldCyan}} X The ScannerBit python interface will not be included in the ScannerBit build. Use -DWITH_PYTHON_SCANNERBIT=ON to activate.${{ColourReset}}")
+endif()
 """.format() # To include scan_python and scan_boost_python targets, for pyScannerBit interface. 
 
     cmake = "./ScannerBit/CMakeLists.txt"
