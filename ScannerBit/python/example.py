@@ -6,6 +6,9 @@ import yaml
 flags = sys.getdlopenflags()
 sys.setdlopenflags(flags | ctypes.RTLD_GLOBAL)
 
+# NOTE: To build the ScannerBit python interface, use the cmake flag -DWITH_PYTHON_SCANNERBIT=ON
+#       when configuring your GAMBIT build and then run "make ScannerBit_python_interface"
+# 
 # NOTE: If you want to ScannerBit from a different directory
 #       put this directory (ScannerBit/python) in the
 #       python environment variable "PYTHONPATH".
