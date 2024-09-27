@@ -1157,7 +1157,16 @@ namespace Gambit
         // Compute the combined analysis loglike and add it to total_loglike
         AnalysisLogLikes analoglikes;
         analoglikes.initialize(adata);
-        fill_analysis_loglikes(adata, analoglikes, fpars->use_marg, fpars->marginaliser, fpars->use_covar && has_covar, fpars->combine_nocovar_SRs, fpars->runOptions, fpars->use_fulllikes, fpars->FullLikes_FileExists, fpars->FullLikes_ReadIn, fpars->FullLikes_Evaluate, 0.0, 0, ""); // TODO: Chris Chang: Just setting xsec/n_mc to zero. This should not make use of them currently (profiling is not enabled for umvue)
+        
+        // For now, throw an error if trying to use Collider Interpolated likelihoods with the umbue poisson like.
+        // This would require careful checking of what total cross-section to pass on a case-by-case basis.
+        // Setting xsec/n_mc to zero as they are not used
+        static const std::string poisson_estimator = fpars->runOptions.getValueOrDef<std::string>("MLE", "poisson_estimator");
+        if (poisson_estimator == "MVUE")
+        {
+          ColliderBit_error().raise(LOCAL_INFO,"Error: umvue poisson estimator cannot currently be run with collider interpolated likelihoods.");
+        }
+        fill_analysis_loglikes(adata, analoglikes, fpars->use_marg, fpars->marginaliser, fpars->use_covar && has_covar, fpars->combine_nocovar_SRs, fpars->runOptions, fpars->use_fulllikes, fpars->FullLikes_FileExists, fpars->FullLikes_ReadIn, fpars->FullLikes_Evaluate, 0.0, 0, "");
         total_loglike += analoglikes.combination_loglike;
       }
 

@@ -42,7 +42,13 @@ namespace Gambit
         std::mt19937 engine(rd());
         return umvue_draw_n_mc(n_mc, engine);
       }
-
+      
+      int umvue_draw_n_mc_threadsafe(double n_mc)
+      {
+        std::poisson_distribution<> poisson(n_mc);
+        return poisson(Random::rng());
+      }
+      
       double umvue_poisson_like(int k, double b, int o, int n_mc, double n_exp)
       {
         if ((n_mc <= 0) || (n_exp <= 0))
@@ -92,8 +98,9 @@ namespace Gambit
       /**
       Regular likelihood estimator
       */
-      double mle_poisson_like(int sb, int o)
+      double mle_poisson_like(int s, int b, int o)
       {
+        int sb = s + b;
         return o*log(sb) - sb - log_factorial(o);
       }
 

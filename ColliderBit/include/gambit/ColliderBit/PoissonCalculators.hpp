@@ -10,6 +10,7 @@ Unbiased likelihood estimator
 #include <cmath>
 #include <random>
 
+#include "gambit/Utils/threadsafe_rng.hpp"
 
 namespace Gambit
 {
@@ -27,9 +28,11 @@ namespace Gambit
 
       int umvue_draw_n_mc(double n_mc);
 
+      int umvue_draw_n_mc_threadsafe(double n_mc);
+
       double umvue_poisson_like(int k, double b, int o, int n_mc, double n_exp);
 
-      double mle_poisson_like(int sb, int o);
+      double mle_poisson_like(int s, int b, int o);
 
     }  // end namespace ideal
   }  // end namespace ColliderBit

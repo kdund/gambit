@@ -106,7 +106,7 @@ namespace Gambit
 
 
     // Calculate a Poisson likelihood
-    double calc_poisson_like(std::string estimator, double sb, double s, double b, int o, int n_mc, double n_exp)
+    double calc_poisson_like(std::string estimator, double s, double b, int o, int n_mc, double n_exp)
     {
       if (estimator == "MVUE")
       {
@@ -114,7 +114,7 @@ namespace Gambit
       }
       else if (estimator == "MLE")
       {
-        return Gambit::ColliderBit::ideal::mle_poisson_like(sb, o);
+        return Gambit::ColliderBit::ideal::mle_poisson_like(s, b, o);
       }
       
       // If hit this point, throw an error
@@ -435,8 +435,8 @@ namespace Gambit
             for (size_t j = 0; j < nSR; ++j)
             {
               const double lambda_j = std::max(n_pred_samples(j), 1e-3); //< manually avoid <= 0 rates
-              //const double loglike_j = n_obss(j)*log(lambda_j) - lambda_j - logfact_n_obss(j);
-              const double loglike_j = calc_poisson_like(poisson_estimator, lambda_j, lambda_j - n_bkg(j), n_bkg(j), n_obss(j), n_mc, n_mc_expected);
+              const double signal_j = lambda_j - n_bkg(j);
+              const double loglike_j = calc_poisson_like(poisson_estimator, signal_j, n_bkg(j), n_obss(j), n_mc, n_mc_expected);
               combined_loglike += loglike_j;
             }
             // Add combined likelihood to running sums (to later calculate averages)
