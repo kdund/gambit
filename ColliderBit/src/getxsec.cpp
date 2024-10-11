@@ -2008,10 +2008,6 @@ namespace Gambit
       // Store the results
       result.first = TotalXsecContainer;
       result.second = ProcessXsecContainer;
-      
-      // TODO: Debugging Just stop the Calculation at this point so I can avoid lots of printing and other calculation
-      std::cout << "SuccessFully Reached the end of my Pythia sim\n";
-      invalid_point().raise("SuccessFully Reached the end of my Pythia sim");
     }
     
     

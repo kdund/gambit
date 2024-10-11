@@ -407,7 +407,8 @@
     START_FUNCTION(map_str_AnalysisLogLikes)
     DEPENDENCY(AllAnalysisNumbers, AnalysisDataPointers)
     DEPENDENCY(RunMC, MCLoopInfo)
-    DEPENDENCY(TotalCrossSection, xsec_container)
+    DEPENDENCY(InitialTotalCrossSection, map_str_xsec_container)
+    //DEPENDENCY(TotalCrossSection, xsec_container) // TODO: I swapped this out with the previous one
     BACKEND_REQ_FROM_GROUP(lnlike_marg_poisson, lnlike_marg_poisson_lognormal_error, (), double, (const int&, const double&, const double&, const double&) )
     BACKEND_REQ_FROM_GROUP(lnlike_marg_poisson, lnlike_marg_poisson_gaussian_error, (), double, (const int&, const double&, const double&, const double&) )
     BACKEND_GROUP(lnlike_marg_poisson)
@@ -420,7 +421,8 @@
     START_FUNCTION(map_str_AnalysisLogLikes)
     DEPENDENCY(AllAnalysisNumbers, AnalysisDataPointers)
     DEPENDENCY(RunMC, MCLoopInfo)
-    DEPENDENCY(TotalCrossSection, xsec_container)
+    DEPENDENCY(InitialTotalCrossSection, map_str_xsec_container)
+    //DEPENDENCY(TotalCrossSection, xsec_container) // TODO: I swapped this out with the previous one
     BACKEND_REQ_FROM_GROUP(lnlike_marg_poisson, lnlike_marg_poisson_lognormal_error, (), double, (const int&, const double&, const double&, const double&) )
     BACKEND_REQ_FROM_GROUP(lnlike_marg_poisson, lnlike_marg_poisson_gaussian_error, (), double, (const int&, const double&, const double&, const double&) )
     BACKEND_GROUP(lnlike_marg_poisson)

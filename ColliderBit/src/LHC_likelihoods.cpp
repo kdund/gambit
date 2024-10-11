@@ -1117,7 +1117,10 @@ namespace Gambit
       double (*marginaliser)(const int&, const double&, const double&, const double&) = (*Pipes::calc_LHC_LogLikes_full::BEgroup::lnlike_marg_poisson == "lnlike_marg_poisson_lognormal_error") ? Pipes::calc_LHC_LogLikes_full::BEreq::lnlike_marg_poisson_lognormal_error.pointer() : Pipes::calc_LHC_LogLikes_full::BEreq::lnlike_marg_poisson_gaussian_error.pointer();
 
       // Get the cross-section and number of mc events (passed downstream for likelihood calculation)
-      double xsec = Dep::TotalCrossSection->xsec();
+      //double xsec = Dep::TotalCrossSection->xsec();
+      std::string collider = Dep::RunMC->current_collider();
+      std::map<std::string, xsec_container> xsec_map = *Dep::InitialTotalCrossSection;
+      double xsec = xsec_map[collider].xsec();
       int n_mc = Dep::RunMC->current_event_count();
 
       // Call the calc_LHC_LogLikes
@@ -1143,7 +1146,10 @@ namespace Gambit
       double (*marginaliser)(const int&, const double&, const double&, const double&) = (*Pipes::calc_LHC_LogLikes::BEgroup::lnlike_marg_poisson == "lnlike_marg_poisson_lognormal_error") ? Pipes::calc_LHC_LogLikes::BEreq::lnlike_marg_poisson_lognormal_error.pointer() : Pipes::calc_LHC_LogLikes::BEreq::lnlike_marg_poisson_gaussian_error.pointer();
 
       // Get the cross-section and number of mc events (passed downstream for likelihood calculation)
-      double xsec = Dep::TotalCrossSection->xsec();
+      //double xsec = Dep::TotalCrossSection->xsec();
+      std::string collider = Dep::RunMC->current_collider();
+      std::map<std::string, xsec_container> xsec_map = *Dep::InitialTotalCrossSection;
+      double xsec = xsec_map[collider].xsec();
       int n_mc = Dep::RunMC->current_event_count();
 
       // Call the calc_LHC_LogLikes
