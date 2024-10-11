@@ -47,6 +47,39 @@
 
 #define MODULE ColliderBit
 
+  /// Calculate an initial cross-section for each collider (stored as a map)
+  /// This should happen before the main event loop
+  /// Could happen by calling Pythia with minimal generation, or with an external tool
+  /// NOTE: This should be the one that gets used later on by the likelihood estimation
+   // TODO: Chris Chang: I added this
+  // TODO: Chris Chang! I am splitting this into three capabilities. One to do the calculation, and two to get the cross-section / process_specific cross-sections.
+  //                    This is just so I can make my own unclear type. I could remove this and neaten it up later
+  #define CAPABILITY PerformInitialCrossSection
+    START_CAPABILITY
+    #define FUNCTION PerformInitialCrossSection_Pythia
+    START_FUNCTION(initialxsec_container) // TODO: Double check if correct form of output
+    DEPENDENCY(SpectrumAndDecaysForPythia, SLHAstruct)
+    #undef FUNCTION
+  #undef CAPABILITY
+  
+  #define CAPABILITY InitialTotalCrossSection
+    START_CAPABILITY
+    #define FUNCTION InitialTotalCrossSection_Pythia
+    START_FUNCTION(map_str_xsec_container) // TODO: Double check if correct form of output
+    DEPENDENCY(PerformInitialCrossSection, initialxsec_container)
+    #undef FUNCTION
+  #undef CAPABILITY
+  
+  #define CAPABILITY InitialProcessCrossSections
+    START_CAPABILITY
+    #define FUNCTION InitialProcessCrossSections_Pythia
+    START_FUNCTION(map_str_map_int_process_xsec) // TODO: Double check if correct form of output
+    DEPENDENCY(PerformInitialCrossSection, initialxsec_container)
+    #undef FUNCTION
+  #undef CAPABILITY
+
+
+
   /// Execute the main Monte Carlo event loop.
   /// Note:
   ///   "Non-loop" capabilities that some in-loop capabilities depend on
@@ -56,6 +89,7 @@
   START_CAPABILITY
     #define FUNCTION operateLHCLoop
     START_FUNCTION(MCLoopInfo, CAN_MANAGE_LOOPS)
+    DEPENDENCY(InitialTotalCrossSection, map_str_xsec_container) // TODO: Chris Chang: I added this
     MODEL_CONDITIONAL_DEPENDENCY(SLHAFileNameAndContent, pair_str_SLHAstruct, ColliderBit_SLHA_file_model, ColliderBit_SLHA_scan_model)
     #undef FUNCTION
 
