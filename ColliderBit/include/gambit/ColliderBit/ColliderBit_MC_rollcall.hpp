@@ -77,7 +77,7 @@
     DEPENDENCY(PerformInitialCrossSection, initialxsec_container)
     #undef FUNCTION
   #undef CAPABILITY
-
+  
 
 
   /// Execute the main Monte Carlo event loop.
@@ -294,6 +294,7 @@
     NEEDS_MANAGER(RunMC, MCLoopInfo)
     DEPENDENCY(ATLASSmearedEvent, HEPUtils::Event)
     DEPENDENCY(ATLASAnalysisContainer, AnalysisContainer)
+    DEPENDENCY(InitialTotalCrossSection, map_str_xsec_container) // TODO: Chris Chang: I added this
     #undef FUNCTION
   #undef CAPABILITY
 
@@ -304,6 +305,7 @@
     NEEDS_MANAGER(RunMC, MCLoopInfo)
     DEPENDENCY(CMSSmearedEvent, HEPUtils::Event)
     DEPENDENCY(CMSAnalysisContainer, AnalysisContainer)
+    DEPENDENCY(InitialTotalCrossSection, map_str_xsec_container) // TODO: Chris Chang: I added this
     #undef FUNCTION
   #undef CAPABILITY
 
@@ -314,6 +316,7 @@
     NEEDS_MANAGER(RunMC, MCLoopInfo)
     DEPENDENCY(CopiedEvent, HEPUtils::Event)
     DEPENDENCY(IdentityAnalysisContainer, AnalysisContainer)
+    DEPENDENCY(InitialTotalCrossSection, map_str_xsec_container) // TODO: Chris Chang: I added this
     #undef FUNCTION
   #undef CAPABILITY
   /// @}

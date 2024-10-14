@@ -1747,7 +1747,6 @@ namespace Gambit
     // Calculate a Pythia cross-section estimate outside of the main event loop
     // This is for the purpose of calculating an initial cross-section
     // It should run with the minimal required settings (e.g. no showering/clustering/hadronisation)
-    // TODO: Should this be moved elsewhere? e.g. in getPyCollider.hpp
     // TODO: Template to type of collider (e.g. Pythia, Pythia_gummodel)
     void PerformInitialCrossSection_Pythia(initialxsec_container& result)
     {
@@ -1777,11 +1776,11 @@ namespace Gambit
       // Retrieve all the names of all entries in the yaml options node.
       std::vector<str> vec = runOptions->getNames(); // TODO: Merge run options with other pyhtia options (currently would require a copy)
       std::vector<str> collider_names;
-      // Step though the names, and accept only those with a "min_nEvents" sub-entry as colliders.
+      // Step though the names, and accept only those with a "nEvents" sub-entry as colliders.
       for (str& name : vec)
       {
         YAML::Node node = runOptions->getNode(name);
-        if (not node.IsScalar() and node["min_nEvents"]) collider_names.push_back(name);
+        if (not node.IsScalar()) collider_names.push_back(name);
       }
 
       // Loop over colliders
@@ -1793,12 +1792,12 @@ namespace Gambit
       
         std::vector<str> pythiaOptions;
         // By default we tell Pythia to be quiet.
-        pythiaOptions.push_back("Print:quiet = off");// TODO: Change to True
+        pythiaOptions.push_back("Print:quiet = on");
         pythiaOptions.push_back("SLHA:verbose = 0");
       
         YAML::Node colNode = runOptions->getValue<YAML::Node>(collider);
         Options colOptions(colNode);
-        int max_Nevents = colOptions.getValueOrDef<int>(10000, "max_nEvents"); // Just set 10k events as default
+        int max_Nevents = colOptions.getValueOrDef<int>(10000, "nEvents"); // Just set 10k events as default
         int maxFailedEvents = colOptions.getValueOrDef<int>(10, "maxFailedEvents"); // Just set 10k events as default
         if (colOptions.hasKey("pythia_settings"))
         {
@@ -1807,7 +1806,7 @@ namespace Gambit
         }
         
         // We need showProcesses for the xsec veto. // TODO: Is this needed here?
-        pythiaOptions.push_back("Init:showProcesses = on");
+        pythiaOptions.push_back("Init:showProcesses = off");
 
         // We need "SLHA:file = slhaea" for the SLHAea interface.
         pythiaOptions.push_back("SLHA:file = slhaea");
@@ -2024,8 +2023,7 @@ namespace Gambit
       using namespace Pipes::InitialProcessCrossSections_Pythia;
       result = Dep::PerformInitialCrossSection->second;
     }
-
-
+    
 
   }
 }
