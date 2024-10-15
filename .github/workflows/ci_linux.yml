@@ -50,7 +50,7 @@ jobs:
     - name: Run spartan.yaml
       run: |
         echo "Testing spartan.yaml (with cout printer)"
-        sed -i "" 's/ hdf5/ cout/g' yaml_files/spartan.yaml
+        sed -i 's/ hdf5/ cout/g' yaml_files/spartan.yaml
         ./gambit -rf yaml_files/spartan.yaml 
 
 
