@@ -37,7 +37,7 @@
 #include "gambit/Elements/gambit_module_headers.hpp"
 #include "gambit/ColliderBit/ColliderBit_eventloop.hpp"
 #include "gambit/ColliderBit/PoissonCalculators.hpp"
-#include "gambit/ColliderBit/analyses/Analysis.hpp" // TODO: Chris Chang: Trying to Add this
+#include "gambit/ColliderBit/analyses/Analysis.hpp"
 
 // #define COLLIDERBIT_DEBUG
 #define DEBUG_PREFIX "DEBUG: OMP thread " << omp_get_thread_num() << ":  " << __FILE__ << ":" << __LINE__ << ":  "
@@ -65,9 +65,7 @@ namespace Gambit
     }
 
 
-    /// TODO: Chris Chang: I added this
     /// Get the maximum luminosity required for each any analysis in a given collider
-    /// TODO: Can probably run on a single container with all analyses
     double GetMaxLumi(std::vector<str>& analyses)
     {
       AnalysisContainer Container;
@@ -132,7 +130,6 @@ namespace Gambit
         }
 
         // Retrieve the options for each collider.
-        // TODO: Make sure all settings match with the description in the paper
         for (auto& collider : result.collider_names)
         {
           Options colOptions(runOptions->getValue<YAML::Node>(collider));
@@ -157,6 +154,12 @@ namespace Gambit
                                                  +collider+". Please correct your YAML file.");
           }
           
+          min_nEvents[collider]                                           = colOptions.getValueOrDef<int>(10000, "min_nEvents");
+          max_nEvents[collider]                                           = colOptions.getValueOrDef<int>(10000, "max_nEvents");
+          double mean_nEvents                                             = colOptions.getValueOrDef<double>(10000, "mean_nEvents");
+          result.ratio_MC_expected[collider]                              = colOptions.getValueOrDef<double>(1.0, "mean_relative_nEvents");
+          result.estimator                                                = colOptions.getValueOrDef<std::string>("MLE", "poisson_estimator"); 
+          
           // Check that the nEvents options given make sense.
           if (fixed_nEvents and (min_nEvents.at(collider) > max_nEvents.at(collider)) )
           {
@@ -164,12 +167,6 @@ namespace Gambit
             ColliderBit_error().raise(LOCAL_INFO,"Option min_nEvents is greater than corresponding max_nEvents for collider "
                                                  +collider+". Please correct your YAML file.");
           }
-          
-          min_nEvents[collider]                                           = colOptions.getValueOrDef<int>(10000, "min_nEvents");
-          max_nEvents[collider]                                           = colOptions.getValueOrDef<int>(10000, "max_nEvents");
-          double mean_nEvents                                             = colOptions.getValueOrDef<double>(10000, "mean_nEvents");
-          result.ratio_MC_expected[collider]                              = colOptions.getValueOrDef<double>(1.0, "mean_relative_nEvents");
-          result.estimator                                                = colOptions.getValueOrDef<std::string>("MLE", "poisson_estimator"); 
           
           // In the case of a relative number of events, set mean_nEvents based on expected nEvents
           if (colOptions.hasKey("mean_relative_nEvents"))
@@ -182,13 +179,13 @@ namespace Gambit
             // Check for zero events
             if (mean_nEvents == 0)
             {
-              ColliderBit_error().set_fatal(true); // This one must regarded fatal since there is something wrong in the user input
-              ColliderBit_error().raise(LOCAL_INFO,"Zero events predicted for collider " + collider); // TODO: Should this throw an error?
+              ColliderBit_error().set_fatal(true);
+              ColliderBit_error().raise(LOCAL_INFO,"Zero events predicted for collider " + collider + ". Perhaps consider a cross-section veto.");
             }
           }
           
           result.desired_nEvents[collider]                                = calc_N_MC(result.estimator, mean_nEvents);
-          result.convergence_options[collider].target_stat                = colOptions.getValue<double>("target_fractional_uncert"); // TODO: Pretty sure we want these to be unused when using the UMVUE estimator
+          result.convergence_options[collider].target_stat                = colOptions.getValue<double>("target_fractional_uncert");
           result.convergence_options[collider].stop_at_sys                = colOptions.getValueOrDef<bool>(true, "halt_when_systematic_dominated");
           result.convergence_options[collider].all_analyses_must_converge = colOptions.getValueOrDef<bool>(false, "all_analyses_must_converge");
           result.convergence_options[collider].all_SR_must_converge       = colOptions.getValueOrDef<bool>(false, "all_SR_must_converge");
@@ -206,7 +203,7 @@ namespace Gambit
         }
         first = false;
       }
-
+      
       // Do the base-level initialisation
       Loop::executeIteration(BASE_INIT);
 
@@ -283,7 +280,7 @@ namespace Gambit
         piped_invalid_point.check();
 
         // Convergence loop
-        while((!fixed_nEvents or result.current_event_count() < max_nEvents.at(collider)) and not *Loop::done)
+        while(((fixed_nEvents && result.current_event_count() < max_nEvents.at(collider)) or (!fixed_nEvents && result.current_event_count() < result.desired_nEvents[collider])) and not *Loop::done)
         {
           int eventCountBetweenConvergenceChecks = 0;
           #ifdef COLLIDERBIT_DEBUG
@@ -294,7 +291,6 @@ namespace Gambit
           result.event_generation_began = true;
           #pragma omp parallel
           {
-            // TODO: Chris CHang: Neaten up this while end condition as it is not clean
             while(eventCountBetweenConvergenceChecks < stoppingres.at(collider) and
                   ((fixed_nEvents && result.current_event_count() < max_nEvents.at(collider)) or (!fixed_nEvents && result.current_event_count() < result.desired_nEvents[collider])) and
                   not *Loop::done and

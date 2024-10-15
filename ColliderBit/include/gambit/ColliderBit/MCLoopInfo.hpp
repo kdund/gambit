@@ -62,7 +62,7 @@ namespace Gambit
       std::string estimator;
 
       /// Ratio of nMC to nExpected (see UMVUE estimator)
-      std::map<str, int> ratio_MC_expected;
+      std::map<str, double> ratio_MC_expected;
 
       /// Number of MC events to simulate for a given parameter point for each collider
       std::map<str, int> desired_nEvents;
