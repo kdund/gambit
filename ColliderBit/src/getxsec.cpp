@@ -1743,7 +1743,6 @@ namespace Gambit
 
 
 
-    // TODO: Chris Chang
     // Calculate a Pythia cross-section estimate outside of the main event loop
     // This is for the purpose of calculating an initial cross-section
     // It should run with the minimal required settings (e.g. no showering/clustering/hadronisation)
@@ -1774,7 +1773,7 @@ namespace Gambit
 
       
       // Retrieve all the names of all entries in the yaml options node.
-      std::vector<str> vec = runOptions->getNames(); // TODO: Merge run options with other pyhtia options (currently would require a copy)
+      std::vector<str> vec = runOptions->getNames();
       std::vector<str> collider_names;
       // Step though the names, and accept only those with a "nEvents" sub-entry as colliders.
       for (str& name : vec)
@@ -1805,7 +1804,6 @@ namespace Gambit
           pythiaOptions.insert(pythiaOptions.end(), addPythiaOptions.begin(), addPythiaOptions.end());
         }
         
-        // We need showProcesses for the xsec veto. // TODO: Is this needed here?
         pythiaOptions.push_back("Init:showProcesses = off");
 
         // We need "SLHA:file = slhaea" for the SLHAea interface.
@@ -1971,7 +1969,6 @@ namespace Gambit
           } // End if block on startup_success
         } // End parallel loop
         
-        // TODO: SHould it invalidate the point, or throw an error if it cannot initialise?
         if (!startup_success)
         {
           invalid_point().raise("Bad point: Pythia can't initialize");
@@ -2010,14 +2007,12 @@ namespace Gambit
     }
     
     
-    // TODO: Chris CHang: I added this
     void InitialTotalCrossSection_Pythia(map_str_xsec_container& result)
     {
       using namespace Pipes::InitialTotalCrossSection_Pythia;
       result = Dep::PerformInitialCrossSection->first;
     }
     
-    // TODO: Chris CHang: I added this
     void InitialProcessCrossSections_Pythia(map_str_map_int_process_xsec& result)
     {
       using namespace Pipes::InitialProcessCrossSections_Pythia;

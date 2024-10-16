@@ -1,4 +1,5 @@
-//#include "gambit/Elements/gambit_module_headers.hpp"
+#include "gambit/Elements/gambit_module_headers.hpp"
+#include "gambit/ColliderBit/ColliderBit_rollcall.hpp"
 #include "gambit/ColliderBit/PoissonCalculators.hpp"
 
 namespace Gambit
@@ -53,8 +54,7 @@ namespace Gambit
       {
         if ((n_mc <= 0) || (n_exp <= 0))
         {
-          //ColliderBit_error().raise(LOCAL_INFO, "umvue_poisson_like: n_mc <= 0 || n_exp <= 0");
-          //throw std::runtime_error("n_mc <= 0 || n_exp <= 0"); // TODO: Chris Chang: Can we use a ColliderBit error? (Currently throwing error)
+          ColliderBit_error().raise(LOCAL_INFO, "umvue_poisson_like: n_mc <= 0 || n_exp <= 0");
         }
 
         const double f = n_exp / n_mc;

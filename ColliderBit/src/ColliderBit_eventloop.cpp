@@ -257,7 +257,7 @@ namespace Gambit
         #ifdef COLLIDERBIT_DEBUG
           cout << DEBUG_PREFIX << "operateLHCLoop: Will execute XSEC_CALCULATION" << endl;
         #endif
-        Loop::executeIteration(XSEC_CALCULATION); // TODO: Check what this step will do now
+        Loop::executeIteration(XSEC_CALCULATION);
         // Any problems during the XSEC_CALCULATION step?
         piped_warnings.check(ColliderBit_warning());
         piped_errors.check(ColliderBit_error());
