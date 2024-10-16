@@ -98,14 +98,13 @@ namespace Gambit
         int nEvents = 0;
 
         std::vector<str> pythiaOptions;
-        // By default we tell Pythia to be quiet.
         pythiaOptions.push_back("Print:quiet = on");
         pythiaOptions.push_back("SLHA:verbose = 0");
 
         YAML::Node colNode = runOptions.getValue<YAML::Node>(collider);
         Options colOptions(colNode);
-        int max_Nevents = colOptions.getValueOrDef<int>(10000, "nEvents"); // Just set 10k events as default
-        int maxFailedEvents = colOptions.getValueOrDef<int>(10, "maxFailedEvents"); // Just set 10k events as default
+        int max_Nevents = colOptions.getValueOrDef<int>(10000, "nEvents");
+        int maxFailedEvents = colOptions.getValueOrDef<int>(10, "maxFailedEvents");
         if (colOptions.hasKey("pythia_settings"))
         {
           std::vector<str> addPythiaOptions = colNode["pythia_settings"].as<std::vector<str> >();
@@ -113,8 +112,6 @@ namespace Gambit
         }
 
         pythiaOptions.push_back("Init:showProcesses = off");
-
-        // We need "SLHA:file = slhaea" for the SLHAea interface.
         pythiaOptions.push_back("SLHA:file = slhaea");
 
         // If the collider energy is not given in the list of Pythia options, we set it to 13 TeV by default.
@@ -267,7 +264,7 @@ namespace Gambit
               }
             }
           } // End if block on startup_success
-        } // End parallel loop
+        } // End parallel block
 
         if (!startup_success)
         {
