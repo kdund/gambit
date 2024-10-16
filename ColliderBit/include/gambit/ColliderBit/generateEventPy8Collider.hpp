@@ -58,35 +58,29 @@ namespace Gambit
     // Calculate a Pythia cross-section estimate outside of the main event loop
     // This is for the purpose of calculating an initial cross-section
     // It should run with the minimal required settings (e.g. no showering/clustering/hadronisation)
-    // TODO: Template to type of collider (e.g. Pythia, Pythia_gummodel)
     template<typename PythiaT, typename EventT>
     void PerformInitialCrossSection_Pythia(initialxsec_container& result,
                                            SLHAstruct& slha,
                                            const str model_suffix,
                                            const Options& runOptions)
     {
-      //using namespace Pipes::PerformInitialCrossSection_Pythia;
-    
       map_str_xsec_container TotalXsecContainer;
       map_str_map_int_process_xsec ProcessXsecContainer;
 
       static bool first = true;
       static str pythia_doc_path;
-      //static SLHAstruct slha = *Dep::SpectrumAndDecaysForPythia;  // TODO: Get in the macro
-      PythiaT pythia; // TODO: Model specific templating
-      
-      
+      PythiaT pythia;
+
       // Setup the Pythia documentation path and print the banner once
       if (first)
       {
-        const str be = "Pythia" + model_suffix; // TODO: Add Model suffix
+        const str be = "Pythia" + model_suffix;
         const str ver = Backends::backendInfo().default_version(be);
         pythia_doc_path = Backends::backendInfo().path_dir(be, ver) + "/../share/Pythia8/xmldoc/";
         pythia.banner(pythia_doc_path);
         first = false;
       }
 
-      
       // Retrieve all the names of all entries in the yaml options node.
       std::vector<str> vec = runOptions.getNames();
       std::vector<str> collider_names;
@@ -100,15 +94,14 @@ namespace Gambit
       // Loop over colliders
       for (std::string collider : collider_names)
       {
-
         int nFailedEvents = 0;
         int nEvents = 0;
-      
+
         std::vector<str> pythiaOptions;
         // By default we tell Pythia to be quiet.
         pythiaOptions.push_back("Print:quiet = on");
         pythiaOptions.push_back("SLHA:verbose = 0");
-      
+
         YAML::Node colNode = runOptions.getValue<YAML::Node>(collider);
         Options colOptions(colNode);
         int max_Nevents = colOptions.getValueOrDef<int>(10000, "nEvents"); // Just set 10k events as default
@@ -118,12 +111,12 @@ namespace Gambit
           std::vector<str> addPythiaOptions = colNode["pythia_settings"].as<std::vector<str> >();
           pythiaOptions.insert(pythiaOptions.end(), addPythiaOptions.begin(), addPythiaOptions.end());
         }
-        
+
         pythiaOptions.push_back("Init:showProcesses = off");
 
         // We need "SLHA:file = slhaea" for the SLHAea interface.
         pythiaOptions.push_back("SLHA:file = slhaea");
-      
+
         // If the collider energy is not given in the list of Pythia options, we set it to 13 TeV by default.
         // We search for the substring "Beams:e", meaning that if any of the Pythia options "Beams:eCM", "Beams:eA" 
         // or "Beams:eB" are present we don't apply the default.
@@ -133,25 +126,20 @@ namespace Gambit
           pythiaOptions.push_back("Beams:eCM = 13000");
           logger() << LogTags::debug << "Could not find a beam energy in the list of Pythia settings. Will add the setting 'Beams:eCM = 13000'." << EOM;
         }
-        
+
         // Add the thread-specific seed to the Pythia options
         str seed = std::to_string(int(Random::draw() * 899990000.));
         pythiaOptions.push_back("Random:seed = " + seed);
-      
-        #ifdef COLLIDERBIT_DEBUG
-          cout << DEBUG_PREFIX << "getPythia"+model_suffix+": My Pythia seed is: " << seed << endl;
-        #endif
-    
+
         bool startup_success = true;
         double combined_xsec = 0.0;
         double combined_xsecErr = 0.0;
         std::vector<int> combined_process_codes;
         std::map<int, double> combined_process_xsec;
         std::map<int, double> combined_process_xsecErr;
-    
+
         #pragma omp parallel private(pythia)
         {
-    
           std::stringstream processLevelOutput;
           try
           {
@@ -169,12 +157,12 @@ namespace Gambit
             catch (...)
             {
               #ifdef COLLIDERBIT_DEBUG
-                cout << DEBUG_PREFIX << "Py8Collider::InitializationError caught in getPy8Collider. Will discard this point." << endl;
+                cout << DEBUG_PREFIX << "Py8Collider::InitializationError caught in PerformInitialCrossSection_Pythia. Will discard this point." << endl;
               #endif
             }
           }
-        
-          EventT dummy_pythia_event; // TODO: templated with Pythia event type
+
+          EventT dummy_pythia_event;
           try
           {
             pythia.nextEvent(dummy_pythia_event);
@@ -182,7 +170,7 @@ namespace Gambit
           catch (...)
           {
             #ifdef COLLIDERBIT_DEBUG
-              cout << DEBUG_PREFIX << "Failed to generate dummy test event in getPy8Collider. Check the logs for event details." << endl;
+              cout << DEBUG_PREFIX << "Failed to generate dummy test event in PerformInitialCrossSection_Pythia. Check the logs for event details." << endl;
             #endif
             //Try a second time
             try
@@ -192,23 +180,21 @@ namespace Gambit
             catch (...)
             {
               #ifdef COLLIDERBIT_DEBUG
-                cout << DEBUG_PREFIX << "Py8Collider::InitializationError caught in getPy8Collider. Will discard this point." << endl;
+                cout << DEBUG_PREFIX << "Py8Collider::InitializationError caught in PerformInitialCrossSection_Pythia. Will discard this point." << endl;
               #endif
               startup_success = false;
             }
           }
-        
+
           // Synchronise the threads, so that they can check all were successfully initialised
           #pragma omp barrier
         
           // Only do the event generation if the startup was successful for all threads
           if (startup_success)
           {
-        
             // Create a dummy event to make Pythia fill its internal list of process codes
             // We are not analysing the event
             EventT pythia_event;
-            //Pythia_8_212::Pythia8::Event pythia_event; // TODO: templated with Pythia event type
             while (nEvents < max_Nevents)
             {
               #pragma omp critical
@@ -226,7 +212,7 @@ namespace Gambit
                 catch (...)
                 {
                   #ifdef COLLIDERBIT_DEBUG
-                    cout << DEBUG_PREFIX << "Failed to generate dummy test event in getPy8Collider. Check the logs for event details." << endl;
+                    cout << DEBUG_PREFIX << "Failed to generate dummy test event in PerformInitialCrossSection_Pythia. Check the logs for event details." << endl;
                   #endif
                   #pragma omp critical (pythia_event_failure)
                   {
@@ -234,12 +220,12 @@ namespace Gambit
                     nFailedEvents += 1;
                     std::stringstream ss;
                     pythia_event.list(ss, 1);
-                    logger() << LogTags::debug << "Failed to generate dummy test event in getPy8Collider. Pythia record for the event that failed:\n" << ss.str() << EOM;
+                    logger() << LogTags::debug << "Failed to generate dummy test event in PerformInitialCrossSection_Pythia. Pythia record for the event that failed:\n" << ss.str() << EOM;
                   }
                 }
               }
             } // End loop over events
-          
+
             // Combine together cross-sections
             #pragma omp critical
             {
@@ -257,9 +243,9 @@ namespace Gambit
                 combined_xsec = (w * combined_xsec + other_w * thread_xsec) / (w + other_w);
                 combined_xsecErr = 1./sqrt(w + other_w);
               }
-          
+
               std::vector<int> thread_active_process_codes = pythia.all_active_process_codes();
-            
+
               for (int code : thread_active_process_codes)
               {
                 // If the process is not already present in the combined objects
@@ -280,25 +266,24 @@ namespace Gambit
                 }
               }
             }
-          
           } // End if block on startup_success
         } // End parallel loop
-        
+
         if (!startup_success)
         {
           invalid_point().raise("Bad point: Pythia can't initialize");
         }
-        
+
         // Invalidate point if too many events fail.
         if(nFailedEvents > maxFailedEvents)
         {
           invalid_point().raise("exceeded maxFailedEvents");
         }
-        
+
         xsec_container xsContainer;
         xsContainer.set_xsec(combined_xsec, combined_xsecErr);
         TotalXsecContainer[collider] = xsContainer;
-        
+
         // Fill a container of cross-sections for each process
         map_int_process_xsec int_proc_xsec_map;
         for (int code : combined_process_codes)
@@ -311,33 +296,32 @@ namespace Gambit
           int_proc_xsec_map[code] = newprocess;
         }
         ProcessXsecContainer[collider] = int_proc_xsec_map;
-        
+
       } // End loop over colliders
-    
+
       // Store the results
       result.first = TotalXsecContainer;
       result.second = ProcessXsecContainer;
     }
-    
-    /// Run initial Pythia cross-section estimation
-    #define GET_INITIAL_XSEC_PYTHIA(NAME, PYTHIA_COLLIDER, PYTHIA_NS)                                                                                          \
-    void NAME(initialxsec_container& result)                                                                                                  \
-    {                                                                                                                                         \
-      using namespace Pipes::NAME;                                                                                                            \
-      static SLHAstruct slha = *Dep::SpectrumAndDecaysForPythia;                                                                              \
-                                                                                                                                              \
-      PerformInitialCrossSection_Pythia<PYTHIA_COLLIDER, PYTHIA_NS::Pythia8::Event>(result, slha, "", *runOptions);                \
-    }
-    
-    #define GET_SPECIFIC_INITIAL_XSEC_PYTHIA(NAME, PYTHIA_COLLIDER, PYTHIA_NS, MODEL_EXTENSION)                                                                \
-    void NAME(initialxsec_container& result)                                                                                                  \
-    {                                                                                                                                         \
-      using namespace Pipes::NAME;                                                                                                            \
-      static SLHAstruct slha = *Dep::SpectrumAndDecaysForPythia;                                                                              \
-                                                                                                                                              \
-      PerformInitialCrossSection_Pythia<PYTHIA_COLLIDER, PYTHIA_NS::Pythia8::Event>(result, slha, #MODEL_EXTENSION, *runOptions);  \
-    }
 
+    /// Run initial Pythia cross-section estimation
+    #define GET_INITIAL_XSEC_PYTHIA(NAME, PYTHIA_COLLIDER, PYTHIA_NS)                                                                         \
+    void NAME(initialxsec_container& result)                                                                                                  \
+    {                                                                                                                                         \
+      using namespace Pipes::NAME;                                                                                                            \
+      static SLHAstruct slha = *Dep::SpectrumAndDecaysForPythia;                                                                              \
+                                                                                                                                              \
+      PerformInitialCrossSection_Pythia<PYTHIA_COLLIDER, PYTHIA_NS::Pythia8::Event>(result, slha, "", *runOptions);                           \
+    }
+    
+    #define GET_SPECIFIC_INITIAL_XSEC_PYTHIA(NAME, PYTHIA_COLLIDER, PYTHIA_NS, MODEL_EXTENSION)                                               \
+    void NAME(initialxsec_container& result)                                                                                                  \
+    {                                                                                                                                         \
+      using namespace Pipes::NAME;                                                                                                            \
+      static SLHAstruct slha = *Dep::SpectrumAndDecaysForPythia;                                                                              \
+                                                                                                                                              \
+      PerformInitialCrossSection_Pythia<PYTHIA_COLLIDER, PYTHIA_NS::Pythia8::Event>(result, slha, #MODEL_EXTENSION, *runOptions);             \
+    }
 
 
     /// Drop a HepMC file for the event
