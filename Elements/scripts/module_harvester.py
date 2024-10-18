@@ -120,10 +120,10 @@ def main(argv):
     if verbose: print("Module rollcall headers identified:")
     for h in module_rollcall_headers:
         if verbose: print(' ',h)
-        h_parts = neatsplit(r'\/',h)
+        h_parts = neatsplit('\/',h)
         modules.add(h_parts[1])
     for h in retrieve_rollcall_headers(verbose,".",exclude_header, retrieve_excluded=True):
-        h_parts = neatsplit(r'\/',h)
+        h_parts = neatsplit('\/',h)
         modules_excluded.add(h_parts[1])
     if verbose:
         print("Module type headers identified:")
