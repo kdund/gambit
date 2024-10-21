@@ -73,7 +73,7 @@ def get_type_equivalencies(nses):
                 continue
             newline = re.sub("^\\[\\s*|\\s*\\]", "", newline)
             equivalency_class = list()
-            for member in re.findall("[^,]*?\\(.*?\\)[^,]*?\\(.*?\\).*?,|[^,]*?<[^>]*?<.*?>[^<]*?>.*?,|[^,]*?<.*?>.*?,|[^,]*?\(.*?\).*?,|[^>\)]*?,", newline+","):
+            for member in re.findall("[^,]*?\\(.*?\\)[^,]*?\\(.*?\\).*?,|[^,]*?<[^>]*?<.*?>[^<]*?>.*?,|[^,]*?<.*?>.*?,|[^,]*?\\(.*?\\).*?,|[^>\\)]*?,", newline+","):
               member = re.sub("\"","",member[:-1].strip())
               # Convert the leading BOSSed namespace for the default version to the explicit namespace of the actual version
               for key in nses:
