@@ -28,8 +28,8 @@ castxml_cc_opt = '-std=c++11'  # Additional option string passed to the compiler
 # ~~~~~ GAMBIT-specific options ~~~~~
 
 gambit_backend_name      = 'Pythia'
-gambit_backend_version   = '8.306'
-gambit_backend_reference = 'Sjostrand:2014zea'
+gambit_backend_version   = '8.312'
+gambit_backend_reference = 'Bierlich:2022pfr'
 gambit_base_namespace    = ''
 
 
@@ -43,8 +43,8 @@ input_files   = [
 include_paths = [
                   '../../../Backends/installed/'+gambit_backend_name.lower()+'/'+gambit_backend_version+'/include',
                   '../../../contrib/slhaea/include',
-                  '../../../contrib/HepMC3-3.2.5/local/include',
-                  '../../../contrib/HepMC3-3.2.5/interfaces/pythia8/include'
+                  '../../../contrib/HepMC3-3.1.1/local/include',
+                  '../../../contrib/HepMC3-3.1.1/interfaces/pythia8/include'
                 ]
 base_paths    = ['../../../Backends/installed/'+gambit_backend_name.lower()+'/'+gambit_backend_version+'/']
 
@@ -147,16 +147,3 @@ ini_function_in_header = True
 pragmas_begin = []
 pragmas_end = []
 
-
-# ~~~~~ Extra code to surround BOSS-generated code included in GAMBIT ~~~~~
-
-# The listed code will be added at the top/bottom in the frontend header file 
-# and in the loaded_types.hpp header.
-
-surround_code_begin = '''
-#ifndef EXCLUDE_HEPMC
-'''
-
-surround_code_end = ''' 
-#endif
-'''

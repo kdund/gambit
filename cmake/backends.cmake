@@ -1207,10 +1207,10 @@ endif()
 
 # Pythia
 set(name "pythia")
-set(ver "8.306")
+set(ver "8.312")
 set(lib "libpythia8")
-set(dl "https://pythia.org/download/pythia83/pythia8306.tgz")
-set(md5 "8df6c6a202fbff5c2b3439aa1af7c209")
+set(dl "https://pythia.org/download/pythia83/pythia8312.tgz")
+set(md5 "b55f03ebd29cf0339905a6a1476b4b41")
 set(dir "${PROJECT_SOURCE_DIR}/Backends/installed/${name}/${ver}")
 
 # - Add additional compiler-specific optimisation flags and suppress some warnings from -Wextra.
@@ -1242,32 +1242,19 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND NOT "${PYTHIA_OPT}")
   set(pythia_CXXFLAGS "${pythia_CXXFLAGS} -no-ipo -ip")
 endif()
 
-# - Pythia 8.306 depends on std::auto_ptr which is removed in c++17, so we need to fall back to c++14 (or c++11) 
-# No longer true for 8.306, but check that there are no unintended side effects to removing this.
-#if(COMPILER_SUPPORTS_CXX17)
-#  string(REGEX REPLACE "-std=c\\+\\+17" "-std=c++14" pythia_CXXFLAGS "${pythia_CXXFLAGS}")
-#endif()
-
 # - Set include directories
 set(pythia_CXXFLAGS "${pythia_CXXFLAGS} -I${Boost_INCLUDE_DIR} -I${PROJECT_SOURCE_DIR}/contrib/slhaea/include")
 
 # - Setup HepMC-specific additions
 option(PYTHIA_WITH_HEPMC "Pythia is compiled with HepMC" ON)
-if(EXCLUDE_HEPMC)
-  set(pythia_depends_on "")
-  set(patch "${PROJECT_SOURCE_DIR}/Backends/patches/${name}/${ver}/patch_${name}_${ver}_nohepmc.dif")
-  set(EXTRA_CONFIG "")
-  set(BOSS_suffix "nohepmc")
-else()
-  set(pythia_depends_on "hepmc")
-  set(patch "${PROJECT_SOURCE_DIR}/Backends/patches/${name}/${ver}/patch_${name}_${ver}.dif")
-  set(pythia_CXXFLAGS "${pythia_CXXFLAGS} -I${HEPMC_PATH}/local/include -I${HEPMC_PATH}/interfaces/pythia8/include")
-  # _Anders
-  # set(pythia_CXX_SHARED_FLAGS "${pythia_CXX_SHARED_FLAGS}  -L${HEPMC_LIB} -Wl,-rpath ${HEPMC_LIB} -lHepMC3")
-  set(pythia_CXX_SHARED_FLAGS "${pythia_CXX_SHARED_FLAGS}  -L${HEPMC_PATH}/local/lib -Wl,-rpath ${HEPMC_PATH}/local/lib -lHepMC3")
-  set(EXTRA_CONFIG "--with-hepmc3=${HEPMC_PATH}/local")
-  set(BOSS_suffix "")
-endif()
+set(pythia_depends_on "hepmc")
+set(patch "${PROJECT_SOURCE_DIR}/Backends/patches/${name}/${ver}/patch_${name}_${ver}.dif")
+set(pythia_CXXFLAGS "${pythia_CXXFLAGS} -I${HEPMC_PATH}/local/include -I${HEPMC_PATH}/interfaces/pythia8/include")
+# _Anders
+# set(pythia_CXX_SHARED_FLAGS "${pythia_CXX_SHARED_FLAGS}  -L${HEPMC_LIB} -Wl,-rpath ${HEPMC_LIB} -lHepMC3")
+set(pythia_CXX_SHARED_FLAGS "${pythia_CXX_SHARED_FLAGS}  -L${HEPMC_PATH}/local/lib -Wl,-rpath ${HEPMC_PATH}/local/lib -lHepMC3")
+set(EXTRA_CONFIG "--with-hepmc3=${HEPMC_PATH}/local")
+set(BOSS_suffix "")
 
 # - Actual configure and compile commands
 check_ditch_status(${name} ${ver} ${dir})
