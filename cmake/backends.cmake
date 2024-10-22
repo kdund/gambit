@@ -42,6 +42,7 @@
 #  \author Anders Kvellestad
 #          (anderkve@fys.uio.no)
 #  \date 2015 May
+#  \date 2023 Jun
 #
 #  \author Christoph Weniger
 #          (c.weniger@uva.nl)
@@ -102,6 +103,14 @@
 #          (ahye@fys.uio.no)
 #  \date 2022 Feb
 #
+#  \author Timon Emken
+#          (timon.emken@fysik.su.se)
+#  \date 2022 Mar
+#
+#  \author Quan Huynh
+#          (qhuy0003@student.monash.edu)
+#  \date 2022 Apr
+#
 #************************************************
 
 
@@ -110,14 +119,14 @@ set(name "castxml")
 set(dir "${CMAKE_SOURCE_DIR}/Backends/scripts/BOSS/castxml")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64")
-    set(castxml_dl "https://data.kitware.com/api/v1/file/606cff072fa25629b9688ac6/download")
+    set(castxml_dl "https://data.kitware.com/api/v1/item/63c469666d3fc641a02d80ca/download")
     set(castxml_dl_filename "castxml-macos-arm64.tar.gz")
   else()
-    set(castxml_dl "https://data.kitware.com/api/v1/file/622961284acac99f42134a6a/download")
+    set(castxml_dl "https://data.kitware.com/api/v1/item/63bed7726d3fc641a02d7e9e/download")
     set(castxml_dl_filename "castxml-macosx.tar.gz")
   endif()
 else()
-  set(castxml_dl "https://data.kitware.com/api/v1/file/622961384acac99f42134a8a/download")
+  set(castxml_dl "https://data.kitware.com/api/v1/item/63bed74d6d3fc641a02d7e98/download")
   set(castxml_dl_filename "castxml-linux.tar.gz")
 endif()
 ExternalProject_Add(${name}
@@ -212,7 +221,7 @@ set(dir "${PROJECT_SOURCE_DIR}/Backends/installed/${name}/${ver}")
 set(examples_dir "${PROJECT_SOURCE_DIR}/Backends/examples/${name}/${ver}")
 check_ditch_status(${name} ${ver} "none" ${ditch_if_absent})
 # Ditch if Python version < v3.6 (required for pyhf)
-if(${PYTHON_VERSION_MAJOR} LESS 3 OR ${PYTHON_VERSION_MINOR} LESS 6)
+if(PYTHON_VERSION VERSION_LESS 3.6)
   message("${BoldCyan} X Excluding ATLAS FullLikes from GAMBIT configuration. Configure with Python >= v3.6 to activate ATLAS FullLikes: ${ColourReset}")
   set(ditched_${name}_${ver} true)
 endif()
@@ -260,6 +269,28 @@ if(NOT ditched_${name}_${ver})
   set_as_default_version("backend" ${name} ${ver})
 endif()
 
+# DarkCast
+set(name "darkcast")
+set(ver "1.1")
+set(lib "darkcastlib")
+set(dl "https://gitlab.com/philten/darkcast/-/archive/v1.1/darkcast-v1.1.tar.gz")
+set(md5 "b9a4cd71e6959230480478ed5262835d")
+set(dir "${PROJECT_SOURCE_DIR}/Backends/installed/${name}")
+set(patch "${PROJECT_SOURCE_DIR}/Backends/patches/${name}/${name}_patch.diff")
+check_ditch_status(${name} ${ver} ${dir})
+if(NOT ditched_${name}_${ver})
+  ExternalProject_Add(${name}_${ver}
+    DOWNLOAD_COMMAND ${DL_BACKEND} ${dl} ${md5} ${dir} ${name} ${ver}
+    SOURCE_DIR ${dir}
+    BUILD_IN_SOURCE 1
+    PATCH_COMMAND patch -p1 < ${patch}
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
+  )
+  add_extra_targets("backend" ${name} ${ver} ${dir} ${dl} clean)
+  set_as_default_version("backend" ${name} ${ver})
+endif()
 
 # DarkSUSY
 set(name "darksusy")
@@ -485,6 +516,8 @@ if(NOT ditched_${name}_${ver})
     SOURCE_DIR ${dir}
     BUILD_IN_SOURCE 1
     PATCH_COMMAND patch -p1 < ${patch}
+    # Apart from the standard patch we want to replace some yield tables with higher resolution versions
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${patchdir}updated_tables/ ${dir}/data/yields_hazma/
     CONFIGURE_COMMAND ./configure FC=${CMAKE_Fortran_COMPILER} FCFLAGS=${BACKEND_Fortran_FLAGS} FFLAGS=${BACKEND_Fortran_FLAGS} CC=${CMAKE_C_COMPILER} CFLAGS=${BACKEND_C_FLAGS} CXX=${CMAKE_CXX_COMPILER} CXXFLAGS=${BACKEND_CXX_FLAGS}
     BUILD_COMMAND ${MAKE_PARALLEL} ds_core ds_empty install_tables
     INSTALL_COMMAND ""
@@ -568,9 +601,10 @@ endif()
 # HepLike
 set(name "heplike")
 set(ver "2.0")
-set(dl "https://github.com/tegonzalo/HEPLike/archive/v${ver}.zip")
+set(dl "https://github.com/tegonzalo/HEPLike/archive/V${ver}.zip")
 set(dir "${PROJECT_SOURCE_DIR}/Backends/installed/${name}/${ver}")
 set(md5 "a9b674b8a11037a15bfed69835aac1a6")
+set(patch "${PROJECT_SOURCE_DIR}/Backends/patches/${name}/${ver}/patch_${name}_${ver}.dif")
 set(HL_CXXFLAGS "${BACKEND_CXX_FLAGS} -I${yaml_INCLUDE_DIR}")
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(HL_CXXFLAGS "${HL_CXXFLAGS} -undefined dynamic_lookup -flat_namespace")
@@ -585,9 +619,10 @@ if(NOT ditched_${name}_${ver})
     DOWNLOAD_COMMAND ${DL_BACKEND} ${dl} ${md5} ${dir} ${name} ${ver}
     SOURCE_DIR ${dir}
     BUILD_IN_SOURCE 1
+    PATCH_COMMAND patch -p1 < ${patch}
     UPDATE_COMMAND ${CMAKE_COMMAND} -E echo "set_target_properties(HEPLike_shared PROPERTIES OUTPUT_NAME HEPLike SUFFIX \".so\")" >> ${dir}/CMakeLists.txt
     CMAKE_COMMAND ${CMAKE_COMMAND} ..
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_CXX_FLAGS=${HL_CXXFLAGS} -DCMAKE_MODULE_PATH=${PROJECT_SOURCE_DIR}/cmake -DUSE_ROOT=false
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_CXX_FLAGS=${HL_CXXFLAGS} -DCMAKE_MODULE_PATH=${PROJECT_SOURCE_DIR}/cmake -DUSE_ROOT=false -DBoost_INCLUDE_DIRS=${Boost_INCLUDE_DIR} -DBoost_LIBRARIES=${Boost_LIBRARIES} -DGSL_INCLUDE_DIR=${GSL_INCLUDE_DIR} -DGSL_LIBRARIES=${GSL_LIBRARIES}
     BUILD_COMMAND ${MAKE_PARALLEL} HEPLike_shared
     INSTALL_COMMAND ""
     )
@@ -618,7 +653,7 @@ if(NOT ditched_${name}_${ver})
     BUILD_IN_SOURCE 1
     PATCH_COMMAND patch -p1 < ${patch}
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND ${MAKE_PARALLEL} CC=${CMAKE_C_COMPILER} ARFLAGS=rcs CFLAGS=${SI_C_FLAGS}
+    BUILD_COMMAND ${MAKE_SERIAL} CC=${CMAKE_C_COMPILER} ARFLAGS=rcs CFLAGS=${SI_C_FLAGS}
           COMMAND ar x src/libsuperiso.a
           COMMAND ${CMAKE_COMMAND} -E echo "${CMAKE_C_COMPILER} ${CMAKE_SHARED_LINKER_FLAGS} ${NO_FIXUP_CHAINS} ${CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS} -o ${lib}.so *.o" > make_so.sh
           COMMAND chmod u+x make_so.sh
@@ -1108,7 +1143,69 @@ if(NOT ditched_${name}_${ver})
 endif()
 
 
-# Pythia 8.306
+# Libphysica
+set(name "libphysica")
+set(ver "0.1.5")
+set(dl "https://github.com/temken/${name}/archive/refs/tags/v${ver}.zip")
+set(md5 "none")
+set(dir "${PROJECT_SOURCE_DIR}/Backends/installed/${name}/${ver}")
+set(libphysica_dir "${dir}")
+set(libphysica_ver "${ver}")
+set(patch "${PROJECT_SOURCE_DIR}/Backends/patches/${name}/${ver}/patch_${name}_${ver}.dif")
+check_ditch_status(${name} ${ver} ${dir})
+if(NOT ditched_${name}_${ver})
+  ExternalProject_Add(${name}_${ver}
+    DOWNLOAD_COMMAND ${DL_BACKEND} ${dl} ${md5} ${libphysica_dir} ${name} ${ver}
+    SOURCE_DIR ${libphysica_dir}
+    BUILD_IN_SOURCE 1
+    PATCH_COMMAND patch -p1 < ${patch}
+    CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_CXX_FLAGS=${BACKEND_CXX_FLAGS} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_C_FLAGS=${BACKEND_C_FLAGS} -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF -DCODE_COVERAGE=OFF -DCMAKE_BUILD_TYPE=Release
+    BUILD_COMMAND ${MAKE_PARALLEL} ${dir}
+    INSTALL_COMMAND ""
+  )
+  add_extra_targets("backend" ${name} ${ver} ${libphysica_dir} ${dl} clean)
+  set_as_default_version("backend" ${name} ${ver})
+endif()
+
+# Obscura
+set(name "obscura")
+set(ver "1.1.0")
+set(dl "https://github.com/temken/obscura/archive/refs/tags/v${ver}.tar.gz")
+set(md5 "0a39d7a4da0757d89d041ada592a758f")
+set(lib "libobscura")
+set(dir "${PROJECT_SOURCE_DIR}/Backends/installed/${name}/${ver}")
+set(patch "${PROJECT_SOURCE_DIR}/Backends/patches/${name}/${ver}/patch_${name}_${ver}.dif")
+check_ditch_status(${name} ${ver} ${dir})
+if(NOT ditched_${name}_${ver})
+  set(obscura_CXX_FLAGS "${BACKEND_CXX_FLAGS}")
+  set(obscura_C_FLAGS "${BACKEND_C_FLAGS}")
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(obscura_CXX_FLAGS "${obscura_CXX_FLAGS} -Wl,-undefined,dynamic_lookup,-flat_namespace")
+    set(obscura_C_FLAGS "${obscura_C_FLAGS} -Wl,-undefined,dynamic_lookup,-flat_namespace")
+  endif()
+  set_compiler_warning("no-unused-parameter" obscura_CXX_FLAGS)
+  set_compiler_warning("no-type-limits" obscura_CXX_FLAGS)
+  set_compiler_warning("no-maybe-uninitialized" obscura_CXX_FLAGS)
+  set_compiler_warning("no-unused-but-set-variable" obscura_CXX_FLAGS)
+  ExternalProject_Add(${name}_${ver}
+    DEPENDS "castxml;libphysica"
+    DOWNLOAD_COMMAND ${DL_BACKEND} ${dl} ${md5} ${dir} ${name} ${ver}
+    SOURCE_DIR ${dir}
+    BUILD_IN_SOURCE 1
+    PATCH_COMMAND patch -p1 < ${patch}
+          COMMAND  ${CMAKE_COMMAND} -E make_directory "${dir}/generated/"
+          COMMAND ${CMAKE_COMMAND} -E echo "" > "${dir}/generated/version.hpp"
+    CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_CXX_FLAGS=${obscura_CXX_FLAGS} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_C_FLAGS=${obscura_C_FLAGS} -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF -DCODE_COVERAGE=OFF -DCMAKE_BUILD_TYPE=Release ${dir} -Dlibphysica_SOURCE_DIR=${libphysica_dir}
+    BUILD_COMMAND ${MAKE_PARALLEL} libobscura
+    INSTALL_COMMAND ""
+  )
+  add_extra_targets("backend" ${name} ${ver} ${dir} ${dl} clean)
+  set_as_default_version("backend" ${name} ${ver})
+  BOSS_backend(${name} ${ver})
+endif()
+
+
+# Pythia
 set(name "pythia")
 set(ver "8.306")
 set(lib "libpythia8")
@@ -1960,7 +2057,7 @@ if(NOT ditched_${name}_${ver})
     INSTALL_COMMAND ""
   )
   add_extra_targets("backend" ${name} ${ver} ${dir} ${dl} clean)
-  set_as_default_version("backend" ${name} ${ver})
+  #set_as_default_version("backend" ${name} ${ver})
 endif()
 
 # plc
@@ -1995,7 +2092,9 @@ if(NOT ditched_${name}_${ver})
     PATCH_COMMAND tar -C ${dir}/ -xf ${dir}/code/plc_3.0/plc-3.0.tar.bz2 --strip-components=1
           COMMAND patch -p1 < ${patch}/${name}_${ver}.diff
           COMMAND sed ${dashi} -e "s#x86_64#${CMAKE_SYSTEM_PROCESSOR}#g" waf_tools/mbits.py
-    CONFIGURE_COMMAND CC=${CMAKE_C_COMPILER} FC=${CMAKE_Fortran_COMPILER} ${PYTHON_EXECUTABLE} ${dir}/waf configure --cfitsio_include=${cfitsio_dir}/include --cfitsio_lib=${cfitsio_dir}/lib ${mkl_libs_option} --extra_lib=dl --no_pytools
+    CONFIGURE_COMMAND ${CMAKE_COMMAND} -E echo "CC=${CMAKE_C_COMPILER} FC=${CMAKE_Fortran_COMPILER} LDFLAGS=\"${CMAKE_SHARED_LINKER_FLAGS}\" CFLAGS=\"${BACKEND_C_FLAGS}\" ${PYTHON_EXECUTABLE} ${dir}/waf configure --cfitsio_include=${cfitsio_dir}/include --cfitsio_lib=${cfitsio_dir}/lib ${mkl_libs_option} --no_pytools" > run_waf.sh
+              COMMAND chmod u+x run_waf.sh
+              COMMAND ./run_waf.sh
     BUILD_COMMAND ""
     INSTALL_COMMAND C_INCLUDE_PATH=$(C_INCLUDE_PATH):${PYTHON_INCLUDE_DIR} ${PYTHON_EXECUTABLE} ${dir}/waf install --no_pytools
   )
@@ -2007,7 +2106,7 @@ endif()
 # Fastjet
 set(name "fastjet")
 set(ver "3.3.2")
-set(dl "http://fastjet.fr/repo/fastjet-3.3.2.tar.gz")
+set(dl "https://fastjet.fr/repo/fastjet-3.3.2.tar.gz")
 set(md5 "ca3708785c9194513717a54c1087bfb0")
 set(dir "${PROJECT_SOURCE_DIR}/Backends/installed/${name}/${ver}")
 # OpenMP flags don't play nicely with clang and FastJet's antiquated libtoolized build system.
@@ -2191,6 +2290,10 @@ if(NOT ditched_${name}_${ver})
 endif()
 
 
+# Linker flags used in the class makefile when linking executables
+set(CLASSY_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${NO_FIXUP_CHAINS}")
+# This is the link command used by cython when compiling Python.
+set(CYTHON_LINK "LDSHARED=${CMAKE_C_COMPILER} ${CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS} ${CLASSY_LINKER_FLAGS}")
 # Modified OpenMP settings and linker flags for classy
 if(FOUND_BREW_OPENMP)
   set(CLASSY_OpenMP_C_FLAGS "${OpenMP_C_FLAGS} -I${BREW_LIBOMP_PREFIX}/include")
@@ -2204,9 +2307,10 @@ else()
 endif()
 if("${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
   set(lgomp_REPLACEMENT "${lgomp_REPLACEMENT},  '-arch', '${CMAKE_SYSTEM_PROCESSOR}'")
-  set(CLASSY_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${NO_FIXUP_CHAINS}")
-else()
-  set(lgomp_REPLACEMENT "${lgomp_REPLACEMENT},  '-march=${CMAKE_SYSTEM_PROCESSOR}'")
+elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+  set(lgomp_REPLACEMENT "${lgomp_REPLACEMENT},  '-march=native'")
+elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
+  set(lgomp_REPLACEMENT "${lgomp_REPLACEMENT},  '-xHost'")
 endif()
 
 # classy
@@ -2236,7 +2340,7 @@ if(NOT ditched_${name}_${ver})
       COMMAND sed ${dashi} -e "s#autosetup.py install#autosetup.py build#g" Makefile
       COMMAND sed ${dashi} -e "s#rm -f libclass.a#rm -rf libclass.a lib#g" Makefile
       COMMAND sed ${dashi} -e "s#\"[.]\"#\"${dir}\"#g" include/common.h
-      BUILD_COMMAND ${MAKE_PARALLEL} CC=${CMAKE_C_COMPILER} OMPFLAG=${CLASSY_OpenMP_C_FLAGS} OPTFLAG= CCFLAG=${BACKEND_C_FLAGS} LDFLAG=${CLASSY_LINKER_FLAGS} PYTHON=${PYTHON_EXECUTABLE} all
+      BUILD_COMMAND ${MAKE_PARALLEL} CC=${CMAKE_C_COMPILER} OMPFLAG=${CLASSY_OpenMP_C_FLAGS} OPTFLAG= CCFLAG=${BACKEND_C_FLAGS} LDFLAG=${CLASSY_LINKER_FLAGS} PYTHON=${PYTHON_EXECUTABLE} ${CYTHON_LINK} CFLAGS=${BACKEND_C_FLAGS} all
       COMMAND ${CMAKE_COMMAND} -E make_directory lib
       COMMAND find python/ -name "classy*.so" | xargs -I {} cp "{}" lib/
       COMMAND ${CMAKE_COMMAND} -E echo "#This is a trampoline script to import the cythonized python module under a different name" > lib/${lib}_${sfver}.py
@@ -2275,7 +2379,7 @@ if(NOT ditched_${name}_${ver})
       COMMAND sed ${dashi} -e "s#autosetup.py install#autosetup.py build#g" Makefile
       COMMAND sed ${dashi} -e "s#rm -f libclass.a#rm -rf libclass.a lib#g" Makefile
       COMMAND sed ${dashi} -e "s#\"[.]\"#\"${dir}\"#g" include/common.h
-      BUILD_COMMAND ${MAKE_PARALLEL} CC=${CMAKE_C_COMPILER} OMPFLAG=${CLASSY_OpenMP_C_FLAGS} OPTFLAG= CCFLAG=${BACKEND_C_FLAGS} LDFLAG=${CLASSY_LINKER_FLAGS} PYTHON=${PYTHON_EXECUTABLE} all
+      BUILD_COMMAND ${MAKE_PARALLEL} CC=${CMAKE_C_COMPILER} OMPFLAG=${CLASSY_OpenMP_C_FLAGS} OPTFLAG= CCFLAG=${BACKEND_C_FLAGS} LDFLAG=${CLASSY_LINKER_FLAGS} PYTHON=${PYTHON_EXECUTABLE} ${CYTHON_LINK} CFLAGS=${BACKEND_C_FLAGS} all
       COMMAND ${CMAKE_COMMAND} -E make_directory lib
       COMMAND find python/ -name "classy*.so" | xargs -I {} cp "{}" lib/
       COMMAND ${CMAKE_COMMAND} -E echo "#This is a trampoline script to import the cythonized python module under a different name" > lib/${lib}_${sfver}.py
@@ -2314,7 +2418,7 @@ if(NOT ditched_${name}_${ver})
       COMMAND sed ${dashi} -e "s#autosetup.py install#autosetup.py build#g" Makefile
       COMMAND sed ${dashi} -e "s#rm -f libclass.a#rm -rf libclass.a lib#g" Makefile
       COMMAND sed ${dashi} -e "s#\"[.]\"#\"${dir}\"#g" include/common.h
-      BUILD_COMMAND ${MAKE_PARALLEL} CC=${CMAKE_C_COMPILER} OMPFLAG=${CLASSY_OpenMP_C_FLAGS} OPTFLAG= CCFLAG=${BACKEND_C_FLAGS} LDFLAG=${CLASSY_LINKER_FLAGS} PYTHON=${PYTHON_EXECUTABLE} all
+      BUILD_COMMAND ${MAKE_PARALLEL} CC=${CMAKE_C_COMPILER} OMPFLAG=${CLASSY_OpenMP_C_FLAGS} OPTFLAG= CCFLAG=${BACKEND_C_FLAGS} LDFLAG=${CLASSY_LINKER_FLAGS} PYTHON=${PYTHON_EXECUTABLE} ${CYTHON_LINK} CFLAGS=${BACKEND_C_FLAGS} all
       COMMAND ${CMAKE_COMMAND} -E make_directory lib
       COMMAND find python/ -name "classy*.so" | xargs -I {} cp "{}" lib/
       COMMAND ${CMAKE_COMMAND} -E echo "#This is a trampoline script to import the cythonized python module under a different name" > lib/${lib}_${sfver}.py
@@ -2353,7 +2457,7 @@ if(NOT ditched_${name}_${ver})
       COMMAND sed ${dashi} -e "s#autosetup.py install#autosetup.py build#g" Makefile
       COMMAND sed ${dashi} -e "s#rm -f libclass.a#rm -rf libclass.a lib#g" Makefile
       COMMAND sed ${dashi} -e "s#\"[.]\"#\"${dir}\"#g" include/common.h
-      BUILD_COMMAND ${MAKE_PARALLEL} CC=${CMAKE_C_COMPILER} OMPFLAG=${CLASSY_OpenMP_C_FLAGS} OPTFLAG= CCFLAG=${BACKEND_C_FLAGS} LDFLAG=${CLASSY_LINKER_FLAGS} PYTHON=${PYTHON_EXECUTABLE} all
+      BUILD_COMMAND ${MAKE_PARALLEL} CC=${CMAKE_C_COMPILER} OMPFLAG=${CLASSY_OpenMP_C_FLAGS} OPTFLAG= CCFLAG=${BACKEND_C_FLAGS} LDFLAG=${CLASSY_LINKER_FLAGS} PYTHON=${PYTHON_EXECUTABLE} ${CYTHON_LINK} CFLAGS=${BACKEND_C_FLAGS} all
       COMMAND ${CMAKE_COMMAND} -E make_directory lib
       COMMAND find python/ -name "classy*.so" | xargs -I {} cp "{}" lib/
       COMMAND ${CMAKE_COMMAND} -E echo "#This is a trampoline script to import the cythonized python module under a different name" > lib/${lib}_${sfver}.py
@@ -2393,7 +2497,7 @@ if(NOT ditched_${name}_${ver})
       COMMAND sed ${dashi} -e "s#autosetup.py install#autosetup.py build#g" Makefile
       COMMAND sed ${dashi} -e "s#rm -f libclass.a#rm -rf libclass.a lib#g" Makefile
       COMMAND sed ${dashi} -e "s#\"[.]\"#\"${dir}\"#g" include/common.h
-      BUILD_COMMAND ${MAKE_PARALLEL} CC=${CMAKE_C_COMPILER} OMPFLAG=${CLASSY_OpenMP_C_FLAGS} OPTFLAG= CCFLAG=${BACKEND_C_FLAGS} LDFLAG=${CLASSY_LINKER_FLAGS} PYTHON=${PYTHON_EXECUTABLE} all
+      BUILD_COMMAND ${MAKE_PARALLEL} CC=${CMAKE_C_COMPILER} OMPFLAG=${CLASSY_OpenMP_C_FLAGS} OPTFLAG= CCFLAG=${BACKEND_C_FLAGS} LDFLAG=${CLASSY_LINKER_FLAGS} PYTHON=${PYTHON_EXECUTABLE} ${CYTHON_LINK} CFLAGS=${BACKEND_C_FLAGS} all
       COMMAND ${CMAKE_COMMAND} -E make_directory lib
       COMMAND find python/ -name "classy*.so" | xargs -I {} cp "{}" lib/
       COMMAND ${CMAKE_COMMAND} -E echo "#This is a trampoline script to import the cythonized python module under a different name" > lib/${lib}_${sfver}.py
@@ -2447,7 +2551,8 @@ endif()
 set(name "multimodecode")
 set(ver "2.0.0")
 set(lib "libmodecode")
-set(dl "http://modecode.org/wp-content/uploads/2014/09/MultiModeCode.2.0.0.tar.gz")
+# Currently archived backend
+set(dl "https://github.com/GambitBSM/archived_backends/raw/main/multimodecode_2.0.0.tar.gz")
 set(md5 "03f99f02c572ea34383a0888fb0658d6")
 set(dir "${PROJECT_SOURCE_DIR}/Backends/installed/${name}/${ver}")
 set(patch "${PROJECT_SOURCE_DIR}/Backends/patches/${name}/${ver}")

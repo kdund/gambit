@@ -30,6 +30,9 @@
 ///  \author Ankit Beniwal
 ///  \date 2020
 ///
+///  \author Patrick Stoecker
+///  \date 2023
+///
 ///  *********************************************
 
 #include "gambit/Elements/standalone_module.hpp"
@@ -127,6 +130,11 @@ int main(int argc, char* argv[])
     initialise_standalone_logs("runs/DarkBit_standalone_MSSM/logs/");
     logger()<<"Running DarkBit standalone example"<<LogTags::info<<EOM;
     model_warning().set_fatal(true);
+    
+    // Initialise settings for printer (required)
+    YAML::Node printerNode = get_standalone_printer("cout", "runs/DarkBit_standalone_MSSM/logs/","");
+    Printers::PrinterManager printerManager(printerNode, false);
+    set_global_printer_manager(&printerManager);
 
     // ---- Check which backends are present ----
     if (not Backends::backendInfo().works["gamLike1.0.1"]) backend_error().raise(LOCAL_INFO, "gamLike 1.0.1 is missing!");
@@ -258,7 +266,7 @@ int main(int argc, char* argv[])
     //
 
     // Initialize nulike backend
-    Backends::nulike_1_0_9::Functown::nulike_bounds.setStatus(2);
+    Backends::nulike_1_0_9::Functown::nulike_bounds.setStatus(FunctorStatus::Active);
     nulike_1_0_9_init.reset_and_calculate();
 
     // Initialize gamLike backend
@@ -403,9 +411,9 @@ int main(int argc, char* argv[])
       DDCalc_Couplings_WIMP_nucleon.reset_and_calculate();
 
       // Initialize DDCalc backend
-      Backends::DDCalc_2_3_0::Functown::DDCalc_CalcRates_simple.setStatus(2);
-      Backends::DDCalc_2_3_0::Functown::DDCalc_Experiment.setStatus(2);
-      Backends::DDCalc_2_3_0::Functown::DDCalc_LogLikelihood.setStatus(2);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_CalcRates_simple.setStatus(FunctorStatus::Active);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_Experiment.setStatus(FunctorStatus::Active);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_LogLikelihood.setStatus(FunctorStatus::Active);
       DDCalc_2_3_0_init.resolveDependency(&ExtractLocalMaxwellianHalo);
       DDCalc_2_3_0_init.resolveDependency(&RD_fraction_one);
       DDCalc_2_3_0_init.resolveDependency(&mwimp_generic);
@@ -828,9 +836,9 @@ int main(int argc, char* argv[])
       DDCalc_Couplings_WIMP_nucleon.reset_and_calculate();
 
       // Initialize DDCalc backend
-      Backends::DDCalc_2_3_0::Functown::DDCalc_CalcRates_simple.setStatus(2);
-      Backends::DDCalc_2_3_0::Functown::DDCalc_Experiment.setStatus(2);
-      Backends::DDCalc_2_3_0::Functown::DDCalc_LogLikelihood.setStatus(2);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_CalcRates_simple.setStatus(FunctorStatus::Active);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_Experiment.setStatus(FunctorStatus::Active);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_LogLikelihood.setStatus(FunctorStatus::Active);
       DDCalc_2_3_0_init.resolveDependency(&ExtractLocalMaxwellianHalo);
       DDCalc_2_3_0_init.resolveDependency(&RD_fraction_one);
       DDCalc_2_3_0_init.resolveDependency(&mwimp_generic);
@@ -1160,9 +1168,9 @@ int main(int argc, char* argv[])
       DDCalc_Couplings_WIMP_nucleon.reset_and_calculate();
 
       // Initialize DDCalc backend
-      Backends::DDCalc_2_3_0::Functown::DDCalc_CalcRates_simple.setStatus(2);
-      Backends::DDCalc_2_3_0::Functown::DDCalc_Experiment.setStatus(2);
-      Backends::DDCalc_2_3_0::Functown::DDCalc_LogLikelihood.setStatus(2);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_CalcRates_simple.setStatus(FunctorStatus::Active);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_Experiment.setStatus(FunctorStatus::Active);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_LogLikelihood.setStatus(FunctorStatus::Active);
       DDCalc_2_3_0_init.resolveDependency(&ExtractLocalMaxwellianHalo);
       DDCalc_2_3_0_init.resolveDependency(&RD_fraction_one);
       DDCalc_2_3_0_init.resolveDependency(&mwimp_generic);
@@ -1490,9 +1498,9 @@ int main(int argc, char* argv[])
       DDCalc_Couplings_WIMP_nucleon.reset_and_calculate();
 
       // Initialize DDCalc backend
-      Backends::DDCalc_2_3_0::Functown::DDCalc_CalcRates_simple.setStatus(2);
-      Backends::DDCalc_2_3_0::Functown::DDCalc_Experiment.setStatus(2);
-      Backends::DDCalc_2_3_0::Functown::DDCalc_LogLikelihood.setStatus(2);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_CalcRates_simple.setStatus(FunctorStatus::Active);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_Experiment.setStatus(FunctorStatus::Active);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_LogLikelihood.setStatus(FunctorStatus::Active);
       DDCalc_2_3_0_init.resolveDependency(&ExtractLocalMaxwellianHalo);
       DDCalc_2_3_0_init.resolveDependency(&RD_fraction_one);
       DDCalc_2_3_0_init.resolveDependency(&mwimp_generic);
@@ -1684,9 +1692,9 @@ int main(int argc, char* argv[])
       mwimp_generic.reset_and_calculate();
 
       // Initialize DDCalc backend
-      Backends::DDCalc_2_3_0::Functown::DDCalc_CalcRates_simple.setStatus(2);
-      Backends::DDCalc_2_3_0::Functown::DDCalc_Experiment.setStatus(2);
-      Backends::DDCalc_2_3_0::Functown::DDCalc_LogLikelihood.setStatus(2);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_CalcRates_simple.setStatus(FunctorStatus::Active);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_Experiment.setStatus(FunctorStatus::Active);
+      Backends::DDCalc_2_3_0::Functown::DDCalc_LogLikelihood.setStatus(FunctorStatus::Active);
       DDCalc_2_3_0_init.resolveDependency(&ExtractLocalMaxwellianHalo);
       DDCalc_2_3_0_init.resolveDependency(&RD_fraction_one);
       DDCalc_2_3_0_init.resolveDependency(&mwimp_generic);

@@ -74,8 +74,8 @@ endif()
 set(name "pippi")
 set(dir "${CMAKE_SOURCE_DIR}/${name}")
 ExternalProject_Add(get-${name}
-  GIT_REPOSITORY https://github.com/patscott/pippi.git
-  GIT_TAG v2.2
+  GIT_REPOSITORY https://github.com/GambitBSM/pippi.git
+  GIT_TAG origin/master
   SOURCE_DIR ${dir}
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
@@ -178,8 +178,6 @@ function(check_ditch_status name version dir)
       set (itch "${itch}" "${name}_${version};")
     elseif ((arg STREQUAL "python") AND NOT HAVE_PYBIND11)
       set (itch "${itch}" "${name}_${version};")
-    elseif ((arg STREQUAL "python2") AND (NOT PYTHON_VERSION_MAJOR EQUAL 2 OR NOT HAVE_PYBIND11))
-      set (itch "${itch}" "${name}_${version};")
     elseif ((arg STREQUAL "python3") AND (NOT PYTHON_VERSION_MAJOR EQUAL 3 OR NOT HAVE_PYBIND11))
       set (itch "${itch}" "${name}_${version};")
     elseif ((arg STREQUAL "hepmc") AND EXCLUDE_HEPMC)
@@ -245,8 +243,21 @@ macro(add_error_target name)
     COMMAND exit 1)
 endmacro()
 
+# A variable needed for file writing in the function below
+set(CREATE_BACKENDS_LIST_FILE TRUE)
 # Function to set up a new target with a generic name of a backend/scanner and associate it with the default version
 function(set_as_default_version type name default)
+
+  # Construct a text file with the names of all the default backends.
+  # (Needed by our CI jobs, and maybe useful for other things too.)
+  if (type STREQUAL "backend")
+    set(backends_list_file "${CMAKE_CURRENT_BINARY_DIR}/default_backends.txt")
+    if(CREATE_BACKENDS_LIST_FILE)
+      file(WRITE "${backends_list_file}" "")
+      set(CREATE_BACKENDS_LIST_FILE FALSE PARENT_SCOPE)
+    endif()
+    file(APPEND "${backends_list_file}" "${name}\n")
+  endif()
 
   #Retrieve the model name if it is also passed
   if(${ARGC} GREATER 3)

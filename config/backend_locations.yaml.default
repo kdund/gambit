@@ -26,13 +26,17 @@ classy:
   2.9.4:       ./Backends/installed/classy/2.9.4/lib/classy_2_9_4.py
   3.1.0:       ./Backends/installed/classy/3.1.0/lib/classy_3_1_0.py
 
-  exo_2.7.2:   ./Backends/installed/classy/exo_2.7.2/lib/classy_exo_2_7_2.py
+classy_exo:
+  2.7.2:       ./Backends/installed/classy/exo_2.7.2/lib/classy_exo_2_7_2.py
 
 Contur:
   2.1.1:       ./Backends/installed/contur/2.1.1/contur/init_by_GAMBIT.py
 
 DarkAges:
   1.2.0:       ./Backends/installed/darkages/1.2.0/DarkAges_1_2_0
+
+DarkCast:
+  1.1:         ./Backends/installed/darkcast/model.py
 
 DarkSUSY:
   5.1.3:       ./Backends/installed/darksusy/5.1.3/lib/libdarksusy.so
@@ -124,6 +128,9 @@ nulike:
   1.0.8:       ./Backends/installed/nulike/1.0.8/lib/libnulike.so
   1.0.9:       ./Backends/installed/nulike/1.0.9/lib/libnulike.so
 
+obscura:
+  1.1.0:       ./Backends/installed/obscura/1.1.0/src/libobscura.so
+
 pbarlike:
   1.0:         ./Backends/installed/pbarlike/1.0/pbarlike-gambit-interface.py
 
@@ -172,12 +179,10 @@ LibFirst:
   1.1:         ./Backends/examples/libfirst.so
 
 LibSecond:
-  1.0:         ./Backends/examples/libsecond/1.0/libsecond_1_0.py
   1.1:         ./Backends/examples/libsecond/1.1/libsecond_1_1.py
   1.2:         ./Backends/examples/libsecond/1.2/libsecond_1_2.py
 
 LibThird:
-  1.0:         ./Backends/examples/libthird/1.0/libthird_1_0
   1.1:         ./Backends/examples/libthird/1.1/libthird_1_1
   1.2:         ./Backends/examples/libthird/1.2/libthird_1_2
 

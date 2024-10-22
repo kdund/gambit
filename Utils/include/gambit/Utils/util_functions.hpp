@@ -13,6 +13,7 @@
 ///  \date 2013 Apr, July, Aug, Dec
 ///  \date 2014 Mar
 ///  \date 2015 Apr
+///  \date 2023 Jan
 ///
 ///  \author Ben Farmer
 ///          (benjamin.farmer@monash.edu.au)
@@ -48,6 +49,7 @@ namespace Gambit
   template <typename T>
   T byVal(T t) { return t; }
 
+  /// Get the sign of a (hopefully numeric) type
   template <typename T>
   int sgn(T val) { return (T(0) < val) - (val < T(0)); }
 
@@ -65,9 +67,19 @@ namespace Gambit
 
   namespace Utils
   {
+    /// Get an environment variable, or "" if the variable is not set
+    std::string getEnvVar(std::string const & key );
+
+    /// Return the root directory of GAMBIT.
+    /// Useful for locating configuration files and other such things
+    /// in a robust manner at runtime 
+    EXPORT_SYMBOLS const std::string& GAMBIT_root_dir();
 
     /// Return the path to the build-time scratch directory
-    const str buildtime_scratch = GAMBIT_DIR "/scratch/build_time/";
+    /// bjf> There is stuff using this variable that is needed by ScannerBit at run time,
+    /// not just build time, therefore it needs to be located using the function above
+    //const str buildtime_scratch = GAMBIT_DIR "/scratch/build_time/";
+    EXPORT_SYMBOLS const std::string& buildtime_scratch();
 
     /// Return the path to the run-specific scratch directory
     /// Don't call this from a destructor, as the internal static str may have already been destroyed.
@@ -127,27 +139,19 @@ namespace Gambit
     /// Convert a whole string to lowercase
     EXPORT_SYMBOLS std::string strtolower(const std::string& a);
 
-    /************************************************************************/
-    /* Comparator for case-insensitive comparison in STL assos. containers  */
-    /************************************************************************/
-    // From: https://stackoverflow.com/a/1801913/1447953
-    struct EXPORT_SYMBOLS ci_less : std::binary_function<std::string, std::string, bool>
+    /// Enclose a string in quotation marks if it contains commas
+    EXPORT_SYMBOLS std::string quote_if_contains_commas(str);
+
+    /// Comparator for case-insensitive comparison in STL assos. containers  */
+    struct EXPORT_SYMBOLS ci_less
     {
       // case-independent (ci) compare_less binary function
-      struct nocase_compare : public std::binary_function<unsigned char,unsigned char,bool>
+      bool operator() (const std::string & s1, const std::string & s2) const;
+      struct nocase_compare
       {
-        bool operator() (const unsigned char& c1, const unsigned char& c2) const {
-            return tolower (c1) < tolower (c2);
-        }
+        bool operator() (const unsigned char& c1, const unsigned char& c2) const;
       };
-      bool operator() (const std::string & s1, const std::string & s2) const {
-        return std::lexicographical_compare
-          (s1.begin (), s1.end (),   // source range
-          s2.begin (), s2.end (),   // dest range
-          nocase_compare ());  // comparison
-      }
     };
-
 
     /// Get pointers to beginning and end of array.
     // Useful for initialising vectors with arrays, e.g.
@@ -238,9 +242,6 @@ namespace Gambit
     /// From: http://stackoverflow.com/a/2845275/1447953
     EXPORT_SYMBOLS bool isInteger(const std::string&);
 
-    /// Get the sign of a (hopefully numeric type)
-    template <typename T> int sgn(T val) {  return (T(0) < val) - (val < T(0)); }
-
     // Dummy functions for variadic variables to avoid compiler warnings
     template<typename... T> void dummy_function() {}
     template<typename T> void dummy_function(T one)
@@ -252,6 +253,15 @@ namespace Gambit
     {
      (void)first;
      dummy_function(args...);
+    }
+
+    /// Expunge entries in a container of std::pairs for which the second (boolean) value of the pair is false.
+    /// Useful for allowing evaluation of a removal criterion over the whole container in parallel.
+    template<template<class, class> class Container, class T >
+    void masked_erase(Container<std::pair<T,bool>, std::allocator<std::pair<T,bool>>>& c)
+    {
+      auto it = std::remove_if(c.begin(), c.end(), [](const std::pair<T,bool>& e) { return not e.second; });
+      c.erase(it, c.end());
     }
 
   }

@@ -36,6 +36,10 @@
 ///          (gonzalo@physik.rwth-aachen.de)
 ///  \date 2021 Sep
 ///
+///  \author Patrick Stoecker
+///          (stoecker@physik.rwth-aachen.de)
+///  \date 2023 May, Nov
+///
 ///  *********************************************
 
 #include <chrono>
@@ -70,7 +74,7 @@ namespace Gambit
      myClaw          (&claw),
      myLabel         ("#"+func_capability+" @"+origin_name+"::"+func_name),
      myTimingLabel   ("Runtime(ns) for "+myLabel),
-     myStatus        (0),
+     myStatus        (FunctorStatus::Model_incompatible),
      myVertexID      (-1),       // (Note: myVertexID = -1 is intended to mean that no vertexID has been assigned)
      myTimingVertexID(-1),       // Not actually a graph vertex; ID assigned by "get_main_param_id" function.
      verbose         (false)     // For debugging.
@@ -102,17 +106,11 @@ namespace Gambit
     /// Acquire ID for timing 'vertex' (used in printer system)
     void functor::setTimingVertexID(int ID) { myTimingVertexID = ID; }
 
-    /// Setter for status: -4 = required backend absent (backend ini functions)
-    ///                    -3 = required classes absent
-    ///                    -2 = function absent
-    ///                    -1 = origin absent
-    ///                     0 = model incompatibility (default)
-    ///                     1 = available
-    ///                     2 = active
-    void functor::setStatus(int stat)
+    /// Setter for status
+    void functor::setStatus(FunctorStatus stat)
     {
       myStatus = stat;
-      setInUse(myStatus == 2);
+      setInUse(myStatus == FunctorStatus::Active);
     }
 
     /// Getter for the wrapped function's name
@@ -124,18 +122,21 @@ namespace Gambit
     /// Getter for the wrapped function's origin (module or backend name)
     str functor::origin()      const { return myOrigin; }
     /// Getter for the version of the wrapped function's origin (module or backend)
-    str functor::version()     const { return myVersion; }
+    str functor::version()     const { utils_error().raise(LOCAL_INFO,"The version method is only defined for backend functors."); return ""; }
     /// Getter for the 'safe' incarnation of the version of the wrapped function's origin (module or backend)
     str functor::safe_version()const { utils_error().raise(LOCAL_INFO,"The safe_version method is only defined for backend functors."); return ""; }
-    /// Getter for the wrapped function current status:
-    ///                    -4 = required backend absent (backend ini functions)
-    ///                    -3 = required classes absent
-    ///                    -2 = function absent
-    ///                    -1 = origin absent
-    ///                     0 = model incompatibility (default)
-    ///                     1 = available
-    ///                     2 = active
-    int functor::status()      const { return myStatus; }
+
+    /// Getter for the functors current status
+    FunctorStatus functor::status() const { return myStatus; }
+    /// Checks whether the functor is available (or even already activate)
+    bool functor::isAvailable() const { return myStatus > 0; }
+    /// Checks whether the functor is active (or even hyperactive)
+    bool functor::isActive() const { return myStatus >= 2; }
+    /// Checks whether the functor is disabled (discriminant is negative)
+    bool functor::isDisabled() const { return myStatus < 0; }
+    /// Checks whether the functor is enabled (discriminant is non negative)
+    bool functor::isEnabled() const { return myStatus >= 0; }
+
     /// Getter for the  overall quantity provided by the wrapped function (capability-type pair)
     sspair functor::quantity() const { return std::make_pair(myCapability, myType); }
     /// Getter for purpose (relevant for output nodes, aka helper structures for the dep. resolution)
@@ -189,6 +190,13 @@ namespace Gambit
     bool functor::canBeLoopManager()
     {
       utils_error().raise(LOCAL_INFO,"The canBeLoopManager method has not been defined in this class.");
+      return false;
+    }
+
+    /// Getter for revealing whether this functor needs a loop manager
+    bool functor::needsLoopManager()
+    {
+      utils_error().raise(LOCAL_INFO,"The needsLoopManager method has not been defined in this class.");
       return false;
     }
 
@@ -304,7 +312,7 @@ namespace Gambit
        be_functor->origin(), be_functor->version());
     }
 
-    /// Getter for listing model-specific conditional dependencies
+    /// Getter for listing model-specific conditional dependencies (matches also on parents and friends)
     std::set<sspair> functor::model_conditional_dependencies (str)
     {
       utils_error().raise(LOCAL_INFO,"The model_conditional_dependencies method has not been defined in this class.");
@@ -312,10 +320,26 @@ namespace Gambit
       return empty;
     }
 
-    /// Getter for listing model-specific conditional backend requirements
+    /// Getter for listing model-specific conditional dependencies (matches on the exact model)
+    std::set<sspair> functor::model_conditional_dependencies_exact (str)
+    {
+      utils_error().raise(LOCAL_INFO,"The model_conditional_dependencies_exact method has not been defined in this class.");
+      std::set<sspair> empty;
+      return empty;
+    }
+
+    /// Getter for listing model-specific conditional backend requirements (matches also on parents and friends)
     std::set<sspair> functor::model_conditional_backend_reqs (str)
     {
       utils_error().raise(LOCAL_INFO,"The model_conditional_backend_reqs method has not been defined in this class.");
+      std::set<sspair> empty;
+      return empty;
+    }
+
+    /// Getter for listing model-specific conditional backend requirements (matches on the exact model)
+    std::set<sspair> functor::model_conditional_backend_reqs_exact (str)
+    {
+      utils_error().raise(LOCAL_INFO,"The model_conditional_backend_reqs_exact method has not been defined in this class.");
       std::set<sspair> empty;
       return empty;
     }
@@ -437,6 +461,24 @@ namespace Gambit
       return safe_ptr<std::set<sspair>>(&myDependees);
     }
 
+    /// Getter for listing allowed models
+    const std::set<str>& functor::getAllowedModels()
+    {
+      return allowedModels;
+    }
+
+    /// Getter for listing conditional models
+    const std::set<str>& functor::getConditionalModels()
+    {
+      return conditionalModels;
+    }
+
+    /// Getter for map of model groups and the set of models in each group
+    const std::map<str, std::set<str>>& functor::getModelGroups()
+    {
+      return modelGroups;
+    }
+
     /// Test whether the functor is allowed (either explicitly or implicitly) to be used with a given model
     bool functor::modelAllowed(str model)
     {
@@ -539,6 +581,30 @@ namespace Gambit
       std::set<str> group_combo(v.begin(), v.end());
       allowedGroupCombos.insert(group_combo);
     }
+
+    /// Add an observable to the set of those that this functor matches.
+    void functor::addMatchedObservable(const DRes::Observable* obs) { matched_observables.insert(obs); }
+    
+    /// Retrieve the set of observables that this functor matches.
+    const std::set<const DRes::Observable*>& functor::getMatchedObservables() { return matched_observables; }
+
+    /// Add a module rule to the set of those against which this functor has been tested and found to match.
+    void functor::addMatchedModuleRule(const DRes::ModuleRule* r) { matched_module_rules.insert(r); }
+    
+    /// Add a backend rule to the set of those against which this functor has been tested and found to match.
+    void functor::addMatchedBackendRule(const DRes::BackendRule* r) { matched_backend_rules.insert(r); }
+
+    /// Retrieve the set of module rules against which this functor has been tested and found to match.
+    const std::set<const DRes::ModuleRule*>& functor::getMatchedModuleRules() { return matched_module_rules; }
+
+    /// Retrieve the set of backend rules against which this functor has been tested and found to match.
+    const std::set<const DRes::BackendRule*>& functor::getMatchedBackendRules() { return matched_backend_rules; } 
+
+    // Retrieve matched rules by type.
+    template<>
+    const std::set<const DRes::ModuleRule*>& functor::getMatchedRules() { return getMatchedModuleRules(); } 
+    template<>
+    const std::set<const DRes::BackendRule*>& functor::getMatchedRules() { return getMatchedBackendRules(); } 
 
     /// Attempt to retrieve a dependency or model parameter that has not been resolved
     void functor::failBigTime(str method)
@@ -939,6 +1005,8 @@ namespace Gambit
       myLoopManagerCapability = cap;
       myLoopManagerType = t;
     }
+    /// Getter for revealing whether this functor needs a loop manager
+    bool module_functor_common::needsLoopManager() { return iRunNested; }
     /// Getter for revealing the required capability of the wrapped function's loop manager
     str module_functor_common::loopManagerCapability() { return myLoopManagerCapability; }
     /// Getter for revealing the required type of the wrapped function's loop manager
@@ -1059,7 +1127,7 @@ namespace Gambit
        be_functor->origin(), be_functor->version());
     }
 
-    /// Getter for listing model-specific conditional dependencies
+    /// Getter for listing model-specific conditional dependencies (matches also on parents and friends)
     std::set<sspair> module_functor_common::model_conditional_dependencies (str model)
     {
       str parent = find_friend_or_parent_model_in_map(model,myModelConditionalDependencies);
@@ -1068,11 +1136,27 @@ namespace Gambit
       return empty;
     }
 
-    /// Getter for listing model-specific conditional backend requirements
+    /// Getter for listing model-specific conditional dependencies (matches on the exact model)
+    std::set<sspair> module_functor_common::model_conditional_dependencies_exact (str model)
+    {
+      if (myModelConditionalDependencies.count(model) != 0) return myModelConditionalDependencies[model];
+      std::set<sspair> empty;
+      return empty;
+    }
+
+    /// Getter for listing model-specific conditional backend requirements (matches also on parents and friends)
     std::set<sspair> module_functor_common::model_conditional_backend_reqs (str model)
     {
       str parent = find_friend_or_parent_model_in_map(model,myModelConditionalBackendReqs);
       if (parent != "") return myModelConditionalBackendReqs[parent];
+      std::set<sspair> empty;
+      return empty;
+    }
+
+    /// Getter for listing model-specific conditional backend requirements (matches on the exact model)
+    std::set<sspair> module_functor_common::model_conditional_backend_reqs_exact (str model)
+    {
+      if (myModelConditionalBackendReqs.count(model) != 0) return myModelConditionalBackendReqs[model];
       std::set<sspair> empty;
       return empty;
     }
@@ -1172,6 +1256,9 @@ namespace Gambit
       }
       myModelConditionalDependencies[model].insert(key);
       dependency_map[key] = resolver;
+
+      // Add the model to the list of conditional models
+      conditionalModels.insert(model);
     }
 
     /// Add an unconditional backend requirement
@@ -1252,6 +1339,9 @@ namespace Gambit
         myModelConditionalBackendReqs[model] = newvec;
       }
       myModelConditionalBackendReqs[model].insert(key);
+
+      // Add the model to the list of conditional models
+      conditionalModels.insert(model);
     }
 
     /// Add a rule for dictating which backends can be used to fulfill which backend requirements.
@@ -1383,7 +1473,7 @@ namespace Gambit
         // Check to make sure some version of the backend in question is connected.
         if (be_ver_map.find(it->first) == be_ver_map.end())
         {
-          this->myStatus = -3;
+          this->myStatus = FunctorStatus::Classes_missing;
           missing_backends.push_back(it->first);
         }
         else
@@ -1394,7 +1484,7 @@ namespace Gambit
             // Check that the specific version needed is connected.
             if (versions.find(*jt) == versions.end())
             {
-              this->myStatus = -3;
+              this->myStatus = FunctorStatus::Classes_missing;
               missing_backends.push_back(it->first + ", v" + *jt);
             }
           }
@@ -1506,7 +1596,7 @@ namespace Gambit
           (*backendreq_map[key])(be_functor);
 
           //Set this backend functor's status to active.
-          be_functor->setStatus(2);
+          be_functor->setStatus(FunctorStatus::Active);
 
           //If this is also the condition under which any backend-conditional dependencies should be activated, do it.
           std::set<sspair> deps_to_activate = backend_conditional_dependencies(be_functor);
@@ -1741,7 +1831,7 @@ namespace Gambit
     /// execution of this functor.
     void module_functor<void>::calculate()
     {
-      if (myStatus == -3)                          // Do an explicit status check to hold standalone writers' hands
+      if (myStatus == FunctorStatus::Classes_missing) // Do an explicit status check to hold standalone writers' hands
       {
         std::ostringstream ss;
         ss << "Sorry, the function " << origin() << "::" << name()
@@ -1750,7 +1840,7 @@ namespace Gambit
         for (auto it = missing_backends.begin(); it != missing_backends.end(); ++it) ss << endl << "  " << *it;
         backend_error().raise(LOCAL_INFO, ss.str());
       }
-      else if (myStatus == -4)
+      else if (myStatus == FunctorStatus::Backend_missing)
       {
         std::ostringstream ss;
         ss << "Sorry, the backend initialisation function " << name()

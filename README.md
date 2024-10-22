@@ -27,6 +27,7 @@ GAMBIT contains interfaces to various external codes, along with scripts for dow
  - **CLASS:** **(i)** D. Blas, J. Lesgourgues, T. Tram, The Cosmic Linear Anisotropy Solving System (CLASS) II: Approximation schemes, JCAP 07 (2011) 034, arXiv: 1104.2933, **(ii)** M. Lucca, N. Schöneberg, D. C. Hooper, J. Lesgourgues, J. Chluba, The synergy between CMB spectral distortions and anisotropies, JCAP 02 (2020) 026, arXiv:1910.04619.
  - **Contur:** J. M. Butterworth, D. Grellscheid, M. Krämer, B. Sarrazin, D. Yallup, Constraining new physics with collider measurements of Standard Model signatures, JHEP 03 (2017), 078, arXiv: 1606.05296 [hep-ph]
  - **DarkAges:** P. Stoecker, M. Krämer, J. Lesgourgues, V. Poulin, Exotic energy injection with ExoCLASS: Application to the Higgs portal model and evaporating black holes, JCAP 03 (2018) 018, arXiv:1801.01871
+ - **DarkCast:** P. Ilten, Y. Soreq, M. Williams, W. Xue, Serendipity in dark photon searches, JHEP 06 (2018) 004, arXiv:1801.04847
  - **DarkSUSY:** **(i)** P. Gondolo, J. Edsjo, et al., DarkSUSY: computing supersymmetric dark matter properties numerically, JCAP 7 (2004) 8, arXiv: astro-ph/0406204 **(ii)** T. Bringmann, J. Edsjö, P. Gondolo, P. Ullio and L. Bergström, DarkSUSY 6: An Advanced Tool to Compute Dark Matter Properties Numerically, JCAP 1807 (2018) 033, arXiv:1802.03399,
  - **DDCalc:** **(i)** GAMBIT Collaboration: P. Athron, C. Balazs, et al. Global analyses of Higgs portal singlet dark matter models using GAMBIT, EPJC 79 (2019) 38, arxiv:1808.10465 **(ii)** P. Athron, J. M. Cornell, F. Kahlhoefer, J. Mckay, P. Scott, Impact of vacuum stability, perturbativity and XENON1T on global fits of Z_2​ and Z_3​ scalar singlet dark matter, EPJC 78 (2018) 1830, arxiv:1806.11281 **(iii)** GAMBIT Dark Matter Workgroup: T. Bringmann, J. Conrad, et al., DarkBit: A GAMBIT module for computing dark matter observables and likelihoods, Eur. Phys. J. C 77 (2017) 831, arXiv:1705.07920
  - **DirectDM:** **(i)** F. Bishara, J. Brod, B. Grinstein, and J. Zupan, DirectDM: a tool for dark matter direct detection, arXiv:1708.02678. **(ii)** J. Brod, A. Gootjes-Dreesbach, M. Tammaro, and J. Zupan, Effective Field Theory for Dark Matter Direct Detection up to Dimension Seven, JHEP 10 (2018) 065, arXiv:1710.10218.
@@ -46,6 +47,7 @@ GAMBIT contains interfaces to various external codes, along with scripts for dow
  - **MultiModeCode:** L. C. Price, J. Frazer, J. Xu, H. V. Peiris, R. Easther, MultiModeCode: An efficient numerical solver for multifield inflation, JCAP 03 (2015) 005, arXiv: 1410.0685
  - **Multinest:** F. Feroz, M. P. Hobson, M. Bridges, MULTINEST: an efficient and robust Bayesian inference tool for cosmology and particle physics, MNRAS 398 (2009) 1601–1614, arXiv:0809.3437
  - **nulike:** **(i)** IceCube Collaboration: M. G. Aartsen et al., Improved limits on dark matter annihilation in the Sun with the 79-string IceCube detector and implications for supersymmetry, JCAP 04 (2016) 022, arXiv:1601.00653, **(ii)** P. Scott, C. Savage, J. Edsjo the IceCube Collaboration: R. Abbasi et al., Use of event-level neutrino telescope data in global fits for theories of new physics, JCAP 11 (2012) 57, arXiv:1207.0810
+ - **obscura:** T. Emken, obscura: A modular C++ tool and library for the direct detection of (sub-GeV) dark matter via nuclear and electron recoils, J. Open Source Softw. 6 (2021) 3725, arXiv:2112.01489
  - **pbarlike:** S. Balan, F. Kahlhoefer, M. Korsmeier, S. Manconi, K. Nippel, Fast and accurate AMS-02 antiproton likelihoods for global dark matter fits, arXiv: 2303.07362 [hep-ph]
  - **PolyChord:** W. J. Handley, M. P. Hobson, M. P. A. N. Lasenby, POLYCHORD: next-generation nested sampling, MNRAS 453 (2015) 4384, arXiv:1506.00171
  - **pyhf:** L. Heinrich, M. Feickert, G. Stark, K. Cranmer,  pyhf: pure-Python implementation of HistFactory statistical models, J.Open Source Softw. 6 (2021) 58, 2823
@@ -71,10 +73,10 @@ GAMBIT is built using the CMake system. The following libraries and packages mus
 
 COMPULSORY:
 
- - gcc >= 5.1 / llvm clang >= 10 / AppleClang >= 13 / icc >= 15.0.2
- - gfortran >= 5.1 / ifort >=15.0.2
- - Cmake 2.8.12 or greater
- - Python 2.7 or greater (Python 3 is supported)
+ - gcc >= 9 / llvm clang >= 10 / AppleClang >= 13 / icc >= 15.0.2
+ - gfortran >= 9 / ifort >=15.0.2
+ - CMake 3.2.3 or greater
+ - Python 3
  - Python modules: yaml, future, os, re, datetime, sys, getopt, shutil and itertools.
  - git
  - Boost 1.48 or greater
@@ -113,7 +115,7 @@ OPTIONAL:
 Memory requirements
 --
 
-For building the entirety of GAMBIT without optimisation, at least 10 GB of RAM is required. The build can be completed with less RAM than this if enough modules are ditched when running cmake, with e.g. `cmake -Ditch="ColliderBit;DarkBit" ..`, etc. See the Core paper ("GAMBIT: The Global and Modular Beyond-the-Standard-Model Inference Tool", the first link at the top of this README file) for further details of how to ditch components. For a list of commonly used cmake options, see the file CMAKE_FLAGS.md.
+For building the entirety of GAMBIT without optimisation, at least 10 GB of RAM is required. The build can be completed with less RAM than this if enough modules are ditched when running CMake, with e.g. `cmake -Ditch="ColliderBit;DarkBit" ..`, etc. See the Core paper ("GAMBIT: The Global and Modular Beyond-the-Standard-Model Inference Tool", the first link at the top of this README file) for further details of how to ditch components. For a list of commonly used CMake options, see the file CMAKE_FLAGS.md.
 
 Building with optimisation enabled (e.g. using -DCMAKE_BUILD_TYPE=Release) may require more than 20 GB of RAM, depending on the compiler in use and precisely which optimisations it employs. Interprocedural optimisation in particular requires very large amounts of RAM. In general, Release mode is only intended for performance-critical applications, such as when running on supercomputer architectures.  It is not advised for laptops.
 
@@ -123,9 +125,9 @@ Building GAMBIT
 
 The basic build instructions are below.  GAMBIT supports Linux and Mac OSX.  On Windows, you can run it thorugh the Linux subsystem or Cygwin.  A full walkthrough of how to install all dependencies and build GAMBIT with AppleClang on OSX can be found in the file README_OSX.md.
 
-Note that cmake will fail to find some dependencies on some systems without guidance. If you encounter problems configuring or building GAMBIT, have a look in BUILD_OPTIONS.md for a list of commonly used build options.
+Note that CMake will fail to find some dependencies on some systems without guidance. If you encounter problems configuring or building GAMBIT, have a look in BUILD_OPTIONS.md for a list of commonly used build options.
 
-More information about the GAMBIT cmake system is provided in the Core paper. Configuration examples for specific computing clusters are available via gambit.hepforge.org.
+More information about the GAMBIT CMake system is provided in the Core paper. Configuration examples for specific computing clusters are available via gambit.hepforge.org.
 
 
 
@@ -204,7 +206,7 @@ The BSD license below applies to all source files in the GAMBIT distribution, ex
 
 License
 --
-Copyright (c) 2017-2021, The GAMBIT Collaboration
+Copyright (c) 2017-2024, The GAMBIT Collaboration
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
