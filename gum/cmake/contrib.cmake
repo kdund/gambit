@@ -132,35 +132,15 @@ EXTERNALPROJECT_ADD(
 )
 add_extra_targets(${name} ${dir})
 
-# Download Pythia v8.212
-set(name "Pythia_8_212")
+# Download Pythia
+set(name "Pythia_8_312")
 set(dir "${CMAKE_SOURCE_DIR}/contrib/${name}")
-set(dl "https://pythia.org/download/pythia82/pythia8212.tgz")
-set(ver "212")
-set(md5 "7bebd73edcabcaec591ce6a38d059fa3")
+set(dl "https://pythia.org/download/pythia83/pythia8312.tgz")
+set(ver "312")
+set(md5 "b55f03ebd29cf0339905a6a1476b4b41")
 set(PYTHIA_MD5 ${md5})
 EXTERNALPROJECT_ADD(
-    Pythia_8_212
-    URL ${dl}
-    URL_MD5 ${md5}
-    UPDATE_COMMAND ""
-    PATCH_COMMAND  ""
-    SOURCE_DIR ${dir}
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ""
-)
-add_extra_targets(${name} ${dir})
-
-# Download Pythia v8.306
-set(name "Pythia_8_306")
-set(dir "${CMAKE_SOURCE_DIR}/contrib/${name}")
-set(dl "https://pythia.org/download/pythia83/pythia8306.tgz")
-set(ver "306")
-set(md5 "8df6c6a202fbff5c2b3439aa1af7c209")
-set(PYTHIA_MD5 ${md5})
-EXTERNALPROJECT_ADD(
-    Pythia_8_306
+    Pythia_8_312
     URL ${dl}
     URL_MD5 ${md5}
     UPDATE_COMMAND ""

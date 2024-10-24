@@ -1,7 +1,7 @@
 diff -rupN pythia8312_original/include/Pythia8/Event.h pythia8312_patched/include/Pythia8/Event.h
---- pythia8312_original/include/Pythia8/Event.h	2024-05-24 04:06:00
-+++ pythia8312_patched/include/Pythia8/Event.h	2024-10-22 15:46:32
-@@ -555,7 +555,7 @@ class Event { (public)
+--- pythia8312_original/include/Pythia8/Event.h	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/include/Pythia8/Event.h	2024-10-22 15:46:32.275522918 +0200
+@@ -555,7 +555,7 @@ public:
  
    // List the particles in an event.
    void list(bool showScaleAndVertex = false,
@@ -11,8 +11,8 @@ diff -rupN pythia8312_original/include/Pythia8/Event.h pythia8312_patched/includ
    // Remove last n entries.
    void popBack(int nRemove = 1) { if (nRemove ==1) entry.pop_back();
 diff -rupN pythia8312_original/include/Pythia8/GAMBIT_hepmc_writer.h pythia8312_patched/include/Pythia8/GAMBIT_hepmc_writer.h
---- pythia8312_original/include/Pythia8/GAMBIT_hepmc_writer.h	1970-01-01 01:00:00
-+++ pythia8312_patched/include/Pythia8/GAMBIT_hepmc_writer.h	2024-10-22 17:20:47
+--- pythia8312_original/include/Pythia8/GAMBIT_hepmc_writer.h	1970-01-01 01:00:00.000000000 +0100
++++ pythia8312_patched/include/Pythia8/GAMBIT_hepmc_writer.h	2024-10-22 17:20:47.538844128 +0200
 @@ -0,0 +1,105 @@
 +#ifndef Pythia8_GAMBIT_hepmc_writer_H
 +#define Pythia8_GAMBIT_hepmc_writer_H
@@ -120,9 +120,9 @@ diff -rupN pythia8312_original/include/Pythia8/GAMBIT_hepmc_writer.h pythia8312_
 +
 +#endif // Pythia8_GAMBIT_hepmc_writer_H
 diff -rupN pythia8312_original/include/Pythia8/Info.h pythia8312_patched/include/Pythia8/Info.h
---- pythia8312_original/include/Pythia8/Info.h	2024-05-24 04:06:00
-+++ pythia8312_patched/include/Pythia8/Info.h	2024-10-22 17:29:58
-@@ -268,7 +268,7 @@ class Info { (public)
+--- pythia8312_original/include/Pythia8/Info.h	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/include/Pythia8/Info.h	2024-10-22 17:29:58.242980364 +0200
+@@ -268,7 +268,7 @@ public:
    int    iBMPI(int i)         const {return iBMPISave[i];}
  
    // Cross section estimate, optionally process by process.
@@ -132,9 +132,9 @@ diff -rupN pythia8312_original/include/Pythia8/Info.h pythia8312_patched/include
    // Name of the specified process.
    string nameProc(int i = 0)  const {
 diff -rupN pythia8312_original/include/Pythia8/PartonDistributions.h pythia8312_patched/include/Pythia8/PartonDistributions.h
---- pythia8312_original/include/Pythia8/PartonDistributions.h	2024-05-24 04:06:00
-+++ pythia8312_patched/include/Pythia8/PartonDistributions.h	2024-10-22 13:22:40
-@@ -330,11 +330,13 @@ class MSTWpdf : public PDF {
+--- pythia8312_original/include/Pythia8/PartonDistributions.h	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/include/Pythia8/PartonDistributions.h	2024-10-22 13:22:40.856993678 +0200
+@@ -330,11 +330,13 @@ private:
  
  class MSTWpdf : public PDF {
  
@@ -149,7 +149,7 @@ diff -rupN pythia8312_original/include/Pythia8/PartonDistributions.h pythia8312_
      : PDF(idBeamIn), iFit(), alphaSorder(), alphaSnfmax(), mCharm(), mBottom(),
      alphaSQ0(), alphaSMZ(), distance(), tolerance(), xx(), qq(),
      c() {init( iFitIn,  pdfdataPath, loggerPtr);}
-@@ -406,7 +408,7 @@ class CTEQ6pdf : public PDF { (public)
+@@ -406,7 +408,7 @@ public:
  
    // Constructor.
    CTEQ6pdf(int idBeamIn = 2212, int iFitIn = 1, double rescaleIn = 1.,
@@ -158,7 +158,7 @@ diff -rupN pythia8312_original/include/Pythia8/PartonDistributions.h pythia8312_
      : PDF(idBeamIn), doExtraPol(false), iFit(), order(), nQuark(), nfMx(),
      mxVal(), nX(), nT(), nG(), iGridX(), iGridQ(), iGridLX(), iGridLQ(),
      rescale(rescaleIn), lambda(), mQ(), qIni(), qMax(), tv(), xMin(), xv(),
-@@ -589,7 +591,7 @@ class PomH1FitAB : public PDF { (public)
+@@ -589,7 +591,7 @@ public:
  
    // Constructor.
   PomH1FitAB(int idBeamIn = 990, int iFit = 1, double rescaleIn = 1.,
@@ -167,7 +167,7 @@ diff -rupN pythia8312_original/include/Pythia8/PartonDistributions.h pythia8312_
     : PDF(idBeamIn), doExtraPol(false), nx(), nQ2(), rescale(rescaleIn), xlow(),
      xupp(), dx(), Q2low(), Q2upp(), dQ2(), gluonGrid(), quarkGrid()
      { init( iFit, pdfdataPath, loggerPtr); }
-@@ -639,7 +641,7 @@ class PomH1Jets : public PDF { (public)
+@@ -639,7 +641,7 @@ public:
  
    // Constructor.
    PomH1Jets(int idBeamIn = 990, int iFit = 1, double rescaleIn = 1.,
@@ -176,7 +176,7 @@ diff -rupN pythia8312_original/include/Pythia8/PartonDistributions.h pythia8312_
      : PDF(idBeamIn), doExtraPol(false), rescale(rescaleIn), xGrid(), Q2Grid(),
      gluonGrid(), singletGrid(), charmGrid()
      {init( iFit, pdfdataPath, loggerPtr);}
-@@ -1129,7 +1131,7 @@ class EPS09 : public nPDF { (public)
+@@ -1129,7 +1131,7 @@ public:
  
    // Constructor.
    EPS09(int idBeamIn = 2212, int iOrderIn = 1, int iSetIn = 1,
@@ -185,7 +185,7 @@ diff -rupN pythia8312_original/include/Pythia8/PartonDistributions.h pythia8312_
      PDFPtr protonPDFPtrIn = 0, Logger* loggerPtrIn = 0)
      : nPDF(idBeamIn, protonPDFPtrIn), iSet(), iOrder(), grid(),
      loggerPtr(loggerPtrIn) { init(iOrderIn, iSetIn, pdfdataPath);}
-@@ -1173,7 +1175,7 @@ class EPPS16 : public nPDF { (public)
+@@ -1173,7 +1175,7 @@ public:
  
    // Constructor.
    EPPS16(int idBeamIn = 2212, int iSetIn = 1,
@@ -195,9 +195,9 @@ diff -rupN pythia8312_original/include/Pythia8/PartonDistributions.h pythia8312_
      : nPDF(idBeamIn, protonPDFPtrIn), iSet(), grid(), logQ2min(),
      loglogQ2maxmin(), logX2min(), loggerPtr(loggerPtrIn)
 diff -rupN pythia8312_original/include/Pythia8/ProcessLevel.h pythia8312_patched/include/Pythia8/ProcessLevel.h
---- pythia8312_original/include/Pythia8/ProcessLevel.h	2024-05-24 04:06:00
-+++ pythia8312_patched/include/Pythia8/ProcessLevel.h	2024-10-22 17:13:09
-@@ -45,7 +45,7 @@ class ProcessLevel : public PhysicsBase { (public)
+--- pythia8312_original/include/Pythia8/ProcessLevel.h	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/include/Pythia8/ProcessLevel.h	2024-10-22 17:13:09.771458653 +0200
+@@ -45,7 +45,7 @@ public:
  
    // Initialization.
    bool init(bool doLHAin, SLHAinterface* slhaInterfacePtrIn,
@@ -206,7 +206,7 @@ diff -rupN pythia8312_original/include/Pythia8/ProcessLevel.h pythia8312_patched
  
    // Store or replace Les Houches pointer.
    void setLHAPtr( LHAupPtr lhaUpPtrIn) {lhaUpPtr = lhaUpPtrIn;
-@@ -79,6 +79,9 @@ class ProcessLevel : public PhysicsBase { (public)
+@@ -79,6 +79,9 @@ public:
  
    bool nextDecays( Event& process) { return resonanceDecays.next( process);}
  
@@ -216,7 +216,7 @@ diff -rupN pythia8312_original/include/Pythia8/ProcessLevel.h pythia8312_patched
  protected:
  
    virtual void onInitInfoPtr() override {
-@@ -106,7 +109,8 @@ class ProcessLevel : public PhysicsBase { (public)
+@@ -106,7 +109,8 @@ private:
    // Vector of containers of internally-generated processes.
    vector<ProcessContainer*> containerPtrs;
    int    iContainer, iLHACont = -1;
@@ -227,9 +227,9 @@ diff -rupN pythia8312_original/include/Pythia8/ProcessLevel.h pythia8312_patched
    // Ditto for optional choice of a second hard process.
    vector<ProcessContainer*> container2Ptrs;
 diff -rupN pythia8312_original/include/Pythia8/Pythia.h pythia8312_patched/include/Pythia8/Pythia.h
---- pythia8312_original/include/Pythia8/Pythia.h	2024-05-24 04:06:00
-+++ pythia8312_patched/include/Pythia8/Pythia.h	2024-10-22 17:06:11
-@@ -79,7 +79,7 @@ class Pythia { (public)
+--- pythia8312_original/include/Pythia8/Pythia.h	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/include/Pythia8/Pythia.h	2024-10-22 17:06:11.242451541 +0200
+@@ -79,7 +79,7 @@ public:
    // object instead of XML files (to speed up multiple initialisations).
    Pythia(Settings& settingsIn, ParticleData& particleDataIn,
      bool printBanner = true);
@@ -238,7 +238,7 @@ diff -rupN pythia8312_original/include/Pythia8/Pythia.h pythia8312_patched/inclu
    // Constructor taking input from streams instead of files.
    Pythia( istream& settingsStrings, istream& particleDataStrings,
      bool printBanner = true);
-@@ -223,7 +223,7 @@ class Pythia { (public)
+@@ -223,7 +223,7 @@ public:
      { partonVertexPtr = partonVertexPtrIn; return true;}
  
    // Initialize.
@@ -247,7 +247,7 @@ diff -rupN pythia8312_original/include/Pythia8/Pythia.h pythia8312_patched/inclu
  
    // Generate the next event.
    bool next() { return next(0); }
-@@ -316,6 +316,11 @@ class Pythia { (public)
+@@ -316,6 +316,11 @@ public:
    double parm(string key) {return settings.parm(key);}
    string word(string key) {return settings.word(key);}
  
@@ -260,8 +260,8 @@ diff -rupN pythia8312_original/include/Pythia8/Pythia.h pythia8312_patched/inclu
    Event           process = {};
  
 diff -rupN pythia8312_original/include/Pythia8/SusyCouplings.h pythia8312_patched/include/Pythia8/SusyCouplings.h
---- pythia8312_original/include/Pythia8/SusyCouplings.h	2024-05-24 04:06:00
-+++ pythia8312_patched/include/Pythia8/SusyCouplings.h	2024-10-22 16:18:43
+--- pythia8312_original/include/Pythia8/SusyCouplings.h	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/include/Pythia8/SusyCouplings.h	2024-10-22 16:18:43.077113762 +0200
 @@ -10,6 +10,9 @@
  #ifndef Pythia8_SusyCouplings_H
  #define Pythia8_SusyCouplings_H
@@ -273,8 +273,8 @@ diff -rupN pythia8312_original/include/Pythia8/SusyCouplings.h pythia8312_patche
  #include "Pythia8/Settings.h"
  #include "Pythia8/StandardModel.h"
 diff -rupN pythia8312_original/include/Pythia8/SusyLesHouches.h pythia8312_patched/include/Pythia8/SusyLesHouches.h
---- pythia8312_original/include/Pythia8/SusyLesHouches.h	2024-05-24 04:06:00
-+++ pythia8312_patched/include/Pythia8/SusyLesHouches.h	2024-10-22 12:14:00
+--- pythia8312_original/include/Pythia8/SusyLesHouches.h	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/include/Pythia8/SusyLesHouches.h	2024-10-22 12:14:00.119860894 +0200
 @@ -15,6 +15,10 @@
  
  #include "Pythia8/PythiaStdlib.h"
@@ -286,7 +286,7 @@ diff -rupN pythia8312_original/include/Pythia8/SusyLesHouches.h pythia8312_patch
  namespace Pythia8 {
  
  //==========================================================================
-@@ -397,11 +401,12 @@ class SusyLesHouches { (public)
+@@ -397,11 +401,12 @@ public:
    // Constructor, with and without filename.
    SusyLesHouches(int verboseIn=1) : verboseSav(verboseIn),
      headerPrinted(false), footerPrinted(false), filePrinted(false),
@@ -302,7 +302,7 @@ diff -rupN pythia8312_original/include/Pythia8/SusyLesHouches.h pythia8312_patch
  
    //***************************** SLHA FILE I/O *****************************//
    // Read and write SLHA files
-@@ -410,6 +415,9 @@ class SusyLesHouches { (public)
+@@ -410,6 +415,9 @@ public:
    int readFile(istream& ,int verboseIn=1,
      bool useDecayIn=true);
  
@@ -312,7 +312,7 @@ diff -rupN pythia8312_original/include/Pythia8/SusyLesHouches.h pythia8312_patch
    //Output utilities
    void listHeader();   // print Header
    void listFooter();   // print Footer
-@@ -646,6 +654,10 @@ class SusyLesHouches { (public)
+@@ -646,6 +654,10 @@ private:
    int verboseSav;
    bool headerPrinted, footerPrinted, filePrinted;
    bool slhaRead, lhefRead, lhefSlha, useDecay;
@@ -324,9 +324,9 @@ diff -rupN pythia8312_original/include/Pythia8/SusyLesHouches.h pythia8312_patch
  };
  
 diff -rupN pythia8312_original/include/Pythia8Plugins/GeneratorInput.h pythia8312_patched/include/Pythia8Plugins/GeneratorInput.h
---- pythia8312_original/include/Pythia8Plugins/GeneratorInput.h	2024-05-24 04:06:00
-+++ pythia8312_patched/include/Pythia8Plugins/GeneratorInput.h	2024-10-22 12:21:48
-@@ -196,1043 +196,6 @@ class MadgraphPar { (private)
+--- pythia8312_original/include/Pythia8Plugins/GeneratorInput.h	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/include/Pythia8Plugins/GeneratorInput.h	2024-10-22 12:21:48.603955312 +0200
+@@ -196,1043 +196,6 @@ private:
  
  };
  
@@ -1371,9 +1371,47 @@ diff -rupN pythia8312_original/include/Pythia8Plugins/GeneratorInput.h pythia831
  
  #endif //  Pythia8_GeneratorInput_H
 diff -rupN pythia8312_original/include/Pythia8Plugins/JetMatching.h pythia8312_patched/include/Pythia8Plugins/JetMatching.h
---- pythia8312_original/include/Pythia8Plugins/JetMatching.h	2024-05-24 04:06:00
-+++ pythia8312_patched/include/Pythia8Plugins/JetMatching.h	2024-10-22 12:26:18
-@@ -365,1658 +365,6 @@ class JetMatchingMadgraph : virtual public JetMatching
+--- pythia8312_original/include/Pythia8Plugins/JetMatching.h	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/include/Pythia8Plugins/JetMatching.h	2024-10-23 15:37:01.967329816 +0200
+@@ -45,37 +45,6 @@ class HJSlowJet: public SlowJet {
+ 
+ };
+ 
+-//--------------------------------------------------------------------------
+-
+-// Find next cluster pair to join.
+-
+-void HJSlowJet::findNext() {
+-
+-  // Find smallest of diB, dij.
+-  if (clSize > 0) {
+-    iMin =  0;
+-    jMin = -1;
+-    dMin = 1.0/TINY;
+-    // Remove the possibility of choosing a beam clustering
+-    for (int i = 1; i < clSize; ++i) {
+-      for (int j = 0; j < i; ++j) {
+-        if (dij[i*(i-1)/2 + j] < dMin) {
+-          iMin = i;
+-          jMin = j;
+-          dMin = dij[i*(i-1)/2 + j];
+-        }
+-      }
+-    }
+-
+-  // If no clusters left then instead default values.
+-  } else {
+-    iMin = -1;
+-    jMin = -1;
+-    dMin = 0.;
+-  }
+-
+-}
+-
+ //==========================================================================
+ 
+ // Declaration of main JetMatching class to perform MLM matching.
+@@ -365,1658 +334,6 @@ private:
  
  };
  
@@ -3033,9 +3071,9 @@ diff -rupN pythia8312_original/include/Pythia8Plugins/JetMatching.h pythia8312_p
  } // end namespace Pythia8
  
 diff -rupN pythia8312_original/src/Event.cc pythia8312_patched/src/Event.cc
---- pythia8312_original/src/Event.cc	2024-05-24 04:06:00
-+++ pythia8312_patched/src/Event.cc	2024-10-22 16:34:17
-@@ -753,15 +753,15 @@ void Event::list(bool showScaleAndVertex, bool showMot
+--- pythia8312_original/src/Event.cc	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/src/Event.cc	2024-10-22 16:34:17.747174486 +0200
+@@ -753,15 +753,15 @@ void Event::remove(int iFirst, int iLast
  // Print an event.
  
  void Event::list(bool showScaleAndVertex, bool showMothersAndDaughters,
@@ -3054,7 +3092,7 @@ diff -rupN pythia8312_original/src/Event.cc pythia8312_patched/src/Event.cc
           << "                   xProd      yProd      zProd      tProd      "
           << " tau\n";
  
-@@ -776,7 +776,7 @@ void Event::list(bool showScaleAndVertex, bool showMot
+@@ -776,7 +776,7 @@ void Event::list(bool showScaleAndVertex
      const Particle& pt = entry[i];
  
      // Basic line for a particle, always printed.
@@ -3063,7 +3101,7 @@ diff -rupN pythia8312_original/src/Event.cc pythia8312_patched/src/Event.cc
           << setw(18) << pt.nameWithStatus(18) << right << setw(4)
           << pt.status() << setw(6) << pt.mother1() << setw(6)
           << pt.mother2() << setw(6) << pt.daughter1() << setw(6)
-@@ -788,7 +788,7 @@ void Event::list(bool showScaleAndVertex, bool showMot
+@@ -788,7 +788,7 @@ void Event::list(bool showScaleAndVertex
  
      // Optional extra line for scale value, polarization and production vertex.
      if (showScaleAndVertex)
@@ -3072,7 +3110,7 @@ diff -rupN pythia8312_original/src/Event.cc pythia8312_patched/src/Event.cc
             << " " << fixed << setprecision(prec) << setw(8+prec) << pt.pol()
             << "                        " << scientific << setprecision(prec)
             << setw(8+prec) << pt.xProd() << setw(8+prec) << pt.yProd()
-@@ -798,29 +798,29 @@ void Event::list(bool showScaleAndVertex, bool showMot
+@@ -798,29 +798,29 @@ void Event::list(bool showScaleAndVertex
      // Optional extra line, giving a complete list of mothers and daughters.
      if (showMothersAndDaughters) {
        int linefill = 2;
@@ -3110,7 +3148,7 @@ diff -rupN pythia8312_original/src/Event.cc pythia8312_patched/src/Event.cc
  
      // Statistics on momentum and charge.
      if (entry[i].status() > 0) {
-@@ -830,7 +830,7 @@ void Event::list(bool showScaleAndVertex, bool showMot
+@@ -830,7 +830,7 @@ void Event::list(bool showScaleAndVertex
    }
  
    // Line with sum charge, momentum, energy and invariant mass.
@@ -3119,7 +3157,7 @@ diff -rupN pythia8312_original/src/Event.cc pythia8312_patched/src/Event.cc
         << "Charge sum:" << setw(7) << chargeSum << "           Momentum sum:"
         << ( (useFixed) ? fixed : scientific ) << setprecision(prec)
         << setw(8+prec) << pSum.px() << setw(8+prec) << pSum.py()
-@@ -838,7 +838,7 @@ void Event::list(bool showScaleAndVertex, bool showMot
+@@ -838,7 +838,7 @@ void Event::list(bool showScaleAndVertex
         << setw(8+prec) << pSum.mCalc() << "\n";
  
    // Listing finished.
@@ -3129,8 +3167,8 @@ diff -rupN pythia8312_original/src/Event.cc pythia8312_patched/src/Event.cc
         << endl;
  }
 diff -rupN pythia8312_original/src/GeneratorInput.cc pythia8312_patched/src/GeneratorInput.cc
---- pythia8312_original/src/GeneratorInput.cc	1970-01-01 01:00:00
-+++ pythia8312_patched/src/GeneratorInput.cc	2024-10-22 12:33:09
+--- pythia8312_original/src/GeneratorInput.cc	1970-01-01 01:00:00.000000000 +0100
++++ pythia8312_patched/src/GeneratorInput.cc	2024-10-22 12:33:09.414452882 +0200
 @@ -0,0 +1,1046 @@
 +#include "Pythia8Plugins/GeneratorInput.h"
 +
@@ -4179,9 +4217,9 @@ diff -rupN pythia8312_original/src/GeneratorInput.cc pythia8312_patched/src/Gene
 +
 +} // end namespace Pythia8
 diff -rupN pythia8312_original/src/Info.cc pythia8312_patched/src/Info.cc
---- pythia8312_original/src/Info.cc	2024-05-24 04:06:00
-+++ pythia8312_patched/src/Info.cc	2024-10-22 17:35:19
-@@ -209,9 +209,9 @@ double Info::getGroupWeight(int iGW) const {
+--- pythia8312_original/src/Info.cc	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/src/Info.cc	2024-10-22 17:35:19.340695421 +0200
+@@ -209,9 +209,9 @@ double Info::getGroupWeight(int iGW) con
  
  // List of all hard processes switched on.
  
@@ -4194,9 +4232,9 @@ diff -rupN pythia8312_original/src/Info.cc pythia8312_patched/src/Info.cc
        codesNow.push_back( nTryEntry->first );
    return codesNow;
 diff -rupN pythia8312_original/src/JetMatching.cc pythia8312_patched/src/JetMatching.cc
---- pythia8312_original/src/JetMatching.cc	1970-01-01 01:00:00
-+++ pythia8312_patched/src/JetMatching.cc	2024-10-22 12:35:55
-@@ -0,0 +1,1662 @@
+--- pythia8312_original/src/JetMatching.cc	1970-01-01 01:00:00.000000000 +0100
++++ pythia8312_patched/src/JetMatching.cc	2024-10-23 15:36:52.843302383 +0200
+@@ -0,0 +1,1692 @@
 +#include "Pythia8Plugins/JetMatching.h"
 +
 +// GAMBIT: We moved the below definitions from GeneratorInput.h
@@ -4204,6 +4242,36 @@ diff -rupN pythia8312_original/src/JetMatching.cc pythia8312_patched/src/JetMatc
 +
 +
 +namespace Pythia8 {
++
++// Find next cluster pair to join.
++
++void HJSlowJet::findNext() {
++
++  // Find smallest of diB, dij.
++  if (clSize > 0) {
++    iMin =  0;
++    jMin = -1;
++    dMin = 1.0/TINY;
++    // Remove the possibility of choosing a beam clustering
++    for (int i = 1; i < clSize; ++i) {
++      for (int j = 0; j < i; ++j) {
++        if (dij[i*(i-1)/2 + j] < dMin) {
++          iMin = i;
++          jMin = j;
++          dMin = dij[i*(i-1)/2 + j];
++        }
++      }
++    }
++
++  // If no clusters left then instead default values.
++  } else {
++    iMin = -1;
++    jMin = -1;
++    dMin = 0.;
++  }
++
++}
++
 +
 +//==========================================================================
 +
@@ -5860,9 +5928,9 @@ diff -rupN pythia8312_original/src/JetMatching.cc pythia8312_patched/src/JetMatc
 +
 +} // end namespace Pythia8
 diff -rupN pythia8312_original/src/PhaseSpace.cc pythia8312_patched/src/PhaseSpace.cc
---- pythia8312_original/src/PhaseSpace.cc	2024-05-24 04:06:00
-+++ pythia8312_patched/src/PhaseSpace.cc	2024-10-22 18:35:38
-@@ -250,8 +250,13 @@ void PhaseSpace::decayKinematics( Event& process) {
+--- pythia8312_original/src/PhaseSpace.cc	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/src/PhaseSpace.cc	2024-10-22 18:35:38.162970792 +0200
+@@ -250,8 +250,13 @@ void PhaseSpace::decayKinematics( Event&
      bool hasRes = false;
      for (int iRes = iResBeg; iRes <= iResEnd; ++iRes)
        if ( !process[iRes].isFinal() ) hasRes = true;
@@ -5877,7 +5945,7 @@ diff -rupN pythia8312_original/src/PhaseSpace.cc pythia8312_patched/src/PhaseSpa
      // Evaluate matrix element and decide whether to keep kinematics.
      double decWt = sigmaProcessPtr->weightDecay( process, iResBeg, iResEnd);
      if (decWt < 0.)
-@@ -260,18 +265,26 @@ void PhaseSpace::decayKinematics( Event& process) {
+@@ -260,18 +265,26 @@ void PhaseSpace::decayKinematics( Event&
        loggerPtr->WARNING_MSG("angular weight above unity");
      while (decWt < rndmPtr->flat() ) {
  
@@ -5916,8 +5984,8 @@ diff -rupN pythia8312_original/src/PhaseSpace.cc pythia8312_patched/src/PhaseSpa
  
        // Ready to allow new test of matrix element.
 diff -rupN pythia8312_original/src/ProcessLevel.cc pythia8312_patched/src/ProcessLevel.cc
---- pythia8312_original/src/ProcessLevel.cc	2024-05-24 04:06:00
-+++ pythia8312_patched/src/ProcessLevel.cc	2024-10-22 16:27:08
+--- pythia8312_original/src/ProcessLevel.cc	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/src/ProcessLevel.cc	2024-10-22 16:27:08.126061794 +0200
 @@ -7,6 +7,21 @@
  
  #include "Pythia8/ProcessLevel.h"
@@ -5940,7 +6008,7 @@ diff -rupN pythia8312_original/src/ProcessLevel.cc pythia8312_patched/src/Proces
  namespace Pythia8 {
  
  //==========================================================================
-@@ -42,7 +57,7 @@ bool ProcessLevel::init( bool doLHA, SLHAinterface* sl
+@@ -42,7 +57,7 @@ ProcessLevel::~ProcessLevel() {
  // Main routine to initialize generation process.
  
  bool ProcessLevel::init( bool doLHA, SLHAinterface* slhaInterfacePtrIn,
@@ -5949,7 +6017,7 @@ diff -rupN pythia8312_original/src/ProcessLevel.cc pythia8312_patched/src/Proces
  
    // Store other input pointers.
    slhaInterfacePtr = slhaInterfacePtrIn;
-@@ -207,10 +222,30 @@ bool ProcessLevel::init( bool doLHA, SLHAinterface* sl
+@@ -207,10 +222,30 @@ bool ProcessLevel::init( bool doLHA, SLH
        ++numberOn;
  
    // Sum maxima for Monte Carlo choice.
@@ -5982,7 +6050,7 @@ diff -rupN pythia8312_original/src/ProcessLevel.cc pythia8312_patched/src/Proces
    // Option to pick a second hard interaction: repeat as above.
    int number2On = 0;
    if (doSecondHard) {
-@@ -240,7 +275,7 @@ bool ProcessLevel::init( bool doLHA, SLHAinterface* sl
+@@ -240,7 +275,7 @@ bool ProcessLevel::init( bool doLHA, SLH
      string pad( max( 0, 51 - int(collision.length())), ' ');
  
      // Print initialization information: header.
@@ -5991,7 +6059,7 @@ diff -rupN pythia8312_original/src/ProcessLevel.cc pythia8312_patched/src/Proces
           << "-----------------*\n"
           << " |                                                   "
           << "               |\n"
-@@ -309,11 +344,14 @@ bool ProcessLevel::init( bool doLHA, SLHAinterface* sl
+@@ -309,11 +344,14 @@ bool ProcessLevel::init( bool doLHA, SLH
           <<"-------------*" << endl;
    }
  
@@ -6006,7 +6074,7 @@ diff -rupN pythia8312_original/src/ProcessLevel.cc pythia8312_patched/src/Proces
    if ( doSecondHard && (number2On == 0  || sigma2MaxSum <= 0.) ) {
      loggerPtr->ERROR_MSG(
        "all second hard processes have vanishing cross sections");
-@@ -664,9 +702,17 @@ bool ProcessLevel::nextOne( Event& process) {
+@@ -664,9 +702,17 @@ bool ProcessLevel::nextOne( Event& proce
      if (!physical) process.clear();
      physical = true;
  
@@ -6026,22 +6094,22 @@ diff -rupN pythia8312_original/src/ProcessLevel.cc pythia8312_patched/src/Proces
        // Pick one of the subprocesses.
        if (procType == 0) {
          double sigmaMaxNow = sigmaMaxSum * rndmPtr->flat();
-@@ -692,6 +738,11 @@ bool ProcessLevel::nextOne( Event& process) {
- 
+@@ -693,6 +739,11 @@ bool ProcessLevel::nextOne( Event& proce
        // Check for end-of-file condition for Les Houches events.
        if (infoPtr->atEndOfFile()) return false;
-+    }
+     }
 +    if (msTimer >= msTimeLimit) {
 +        std::cerr<<"\n\n\n WARNING: in Pythia8::ProcessLevel::next:\n";
 +        std::cerr<<"   Trial event stuck. Aborting event generation\n\n\n";
 +        return false;
-     }
++    }
  
      // Update sum of maxima if current maximum violated.
+     if (containerPtrs[iContainer]->newSigmaMax()) {
 diff -rupN pythia8312_original/src/Pythia.cc pythia8312_patched/src/Pythia.cc
---- pythia8312_original/src/Pythia.cc	2024-05-24 04:06:00
-+++ pythia8312_patched/src/Pythia.cc	2024-10-22 17:25:54
-@@ -488,7 +488,7 @@ bool Pythia::readFile(istream& is, bool warn, int subr
+--- pythia8312_original/src/Pythia.cc	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/src/Pythia.cc	2024-10-22 17:25:54.508112853 +0200
+@@ -488,7 +488,7 @@ bool Pythia::readFile(istream& is, bool
  
  // Routine to initialize with the variable values of the Beams kind.
  
@@ -6070,8 +6138,8 @@ diff -rupN pythia8312_original/src/Pythia.cc pythia8312_patched/src/Pythia.cc
        return false;
      }
 diff -rupN pythia8312_original/src/ResonanceDecays.cc pythia8312_patched/src/ResonanceDecays.cc
---- pythia8312_original/src/ResonanceDecays.cc	2024-05-24 04:06:00
-+++ pythia8312_patched/src/ResonanceDecays.cc	2024-10-22 12:44:23
+--- pythia8312_original/src/ResonanceDecays.cc	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/src/ResonanceDecays.cc	2024-10-22 12:44:23.037283549 +0200
 @@ -189,11 +189,15 @@ bool ResonanceDecays::pickMasses() {
      mSumMin     += mMinBW[i];
    }
@@ -6092,9 +6160,9 @@ diff -rupN pythia8312_original/src/ResonanceDecays.cc pythia8312_patched/src/Res
    // Else if below then retry Breit-Wigners, with simple treshold.
    if (mSum + MSAFETY < mMother) {
 diff -rupN pythia8312_original/src/SigmaSUSY.cc pythia8312_patched/src/SigmaSUSY.cc
---- pythia8312_original/src/SigmaSUSY.cc	2024-05-24 04:06:00
-+++ pythia8312_patched/src/SigmaSUSY.cc	2024-10-22 18:43:07
-@@ -24,12 +24,8 @@ double Sigma2SUSY::weightDecay( Event& process, int iR
+--- pythia8312_original/src/SigmaSUSY.cc	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/src/SigmaSUSY.cc	2024-10-22 18:43:07.610184794 +0200
+@@ -24,12 +24,8 @@ double Sigma2SUSY::weightDecay( Event& p
  
    // Identity of mother of decaying resonance(s).
    int idMother = process[process[iResBeg].mother1()].idAbs();
@@ -6109,7 +6177,7 @@ diff -rupN pythia8312_original/src/SigmaSUSY.cc pythia8312_patched/src/SigmaSUSY
    // For Higgs decay hand over to standard routine.
    if (idMother == 25 || idMother == 35 || idMother == 36)
      return weightHiggsDecay( process, iResBeg, iResEnd);
-@@ -38,76 +34,121 @@ double Sigma2SUSY::weightDecay( Event& process, int iR
+@@ -38,9 +34,18 @@ double Sigma2SUSY::weightDecay( Event& p
    if (idMother == 6)
      return weightTopDecay( process, iResBeg, iResEnd);
  
@@ -6123,15 +6191,15 @@ diff -rupN pythia8312_original/src/SigmaSUSY.cc pythia8312_patched/src/SigmaSUSY
 +  if ( (idMotherAbs > 1000000 && idMotherAbs < 1000020)
 +    || (idMotherAbs > 2000000 && idMotherAbs < 2000020)
 +    || idMother == 1000021) return 1.0;
- 
++
 +  // Neutralino and chargino decays
 +  if ( idMotherAbs == 1000022 || idMotherAbs == 1000023 || idMotherAbs == 1000025
 +                              || idMotherAbs == 1000035 || idMotherAbs == 1000045
 +                              || idMotherAbs == 1000024 || idMotherAbs == 1000037 ) {
-+
+ 
      // Nj -> Ni f fbar
      if (iResEnd - iResBeg != 2) return(1.0);
-     int iW1  = iResBeg;
+@@ -48,66 +53,102 @@ double Sigma2SUSY::weightDecay( Event& p
      int iF   = iResBeg + 1;
      int iFbar= iResBeg + 2;
      int iT   = process[iW1].mother1();
@@ -6284,9 +6352,9 @@ diff -rupN pythia8312_original/src/SigmaSUSY.cc pythia8312_patched/src/SigmaSUSY
      }
    }
 diff -rupN pythia8312_original/src/SusyLesHouches.cc pythia8312_patched/src/SusyLesHouches.cc
---- pythia8312_original/src/SusyLesHouches.cc	2024-05-24 04:06:00
-+++ pythia8312_patched/src/SusyLesHouches.cc	2024-10-22 13:49:07
-@@ -20,23 +20,33 @@ int SusyLesHouches::readFile(string slhaFileIn, int ve
+--- pythia8312_original/src/SusyLesHouches.cc	2024-05-24 04:06:00.000000000 +0200
++++ pythia8312_patched/src/SusyLesHouches.cc	2024-10-22 13:49:07.412146903 +0200
+@@ -20,23 +20,33 @@ namespace Pythia8 {
  int SusyLesHouches::readFile(string slhaFileIn, int verboseIn,
    bool useDecayIn) {
  
@@ -6300,6 +6368,10 @@ diff -rupN pythia8312_original/src/SusyLesHouches.cc pythia8312_patched/src/Susy
 -    message(2,"readFile",slhaFile+" not found",0);
 -    slhaRead = false;
 -    return -1;
+-  }
+-  if (verboseSav >= 3) {
+-    message(0,"readFile","parsing "+slhaFile,0);
+-    filePrinted = true;
 +  // NOTE: Gambit hack for slhaea support:
 +  // If the slhaeaCollPtr is set, get the SLHA content as a stringstream
 +  // from that pointer and pass this to Pythia's readFile function.
@@ -6307,10 +6379,7 @@ diff -rupN pythia8312_original/src/SusyLesHouches.cc pythia8312_patched/src/Susy
 +  {
 +    std::istringstream slhaea_content(slhaeaCollPtr->str());
 +    return readFile( slhaea_content, verboseIn, useDecayIn );
-   }
--  if (verboseSav >= 3) {
--    message(0,"readFile","parsing "+slhaFile,0);
--    filePrinted = true;
++  }
 +  else  // Pythia original
 +  {
 +    slhaFile = slhaFileIn;
@@ -6335,7 +6404,7 @@ diff -rupN pythia8312_original/src/SusyLesHouches.cc pythia8312_patched/src/Susy
  }
  
  int SusyLesHouches::readFile(istream& is, int verboseIn,
-@@ -679,6 +689,13 @@ void SusyLesHouches::listSpectrum(int ifail) {
+@@ -679,6 +689,13 @@ void SusyLesHouches::listFooter() {
  
  void SusyLesHouches::listSpectrum(int ifail) {
  

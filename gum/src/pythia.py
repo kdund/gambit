@@ -153,7 +153,7 @@ def fix_pythia_lib(model, patched_dir, pythia_groups, particles, decays):
                                     switches += " {0} ||".format(model+k)
 
                     f_new.write("  if ("+model+" ||{0} settings.flag(\"".format(switches)+model+":"+x[0]+"2"+x[1]+"\")) {\n")
-                    f_new.write("    sigmaPtr = new Sigma_"+model+"_"+x[0]+"_"+x[1]+"();\n")
+                    f_new.write("    sigmaPtr = make_shared<Sigma_"+model+"_"+x[0]+"_"+x[1]+">();\n")
                     f_new.write("    containerPtrs.push_back( new ProcessContainer(sigmaPtr) );\n")
                     f_new.write("  }\n")
 
@@ -389,18 +389,12 @@ def write_pythia_cmake_entry(model, output_dir, base_pythia_version):
     Writes Pythia entry for cmake/backends.cmake
     """
 
-    # The string that will commence the block to be added by GUM
-    if (base_pythia_version == "306"):
-      version_shorthand = "83"
-    else:
-      version_shorthand = "82"
-    
     to_write = "# Pythia with matrix elements for "+model+" (brought to you today by the letters G, U and M).\n"\
                "set(model \""+model.lower()+"\")\n"\
                "set(name \"pythia_${model}\")\n"\
                "set(ver \"8."+base_pythia_version+"\")\n"\
                "set(lib \"libpythia8\")\n"\
-               "set(dl \"https://pythia.org/download/" + version_shorthand + "pythia8"+base_pythia_version+".tgz\")\n"\
+               "set(dl \"https://pythia.org/download/pythia83/pythia8"+base_pythia_version+".tgz\")\n"\
                "set(md5 \""+pythia_md5+"\")\n"\
                "set(dir \"${PROJECT_SOURCE_DIR}/Backends/installed/${name}/${ver}\")\n"\
                "set(model_specific_patch \"${PROJECT_SOURCE_DIR}/Backends/patches/${name}/${ver}/patch_${name}_${ver}.dif\")\n"\

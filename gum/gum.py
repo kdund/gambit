@@ -106,11 +106,7 @@ if args.file:
                 raise GumError(("\n\nPythia output requested but no "
                                 "collider_processes specified.\n"
                                 "Please amend your .gum file!"))
-            # Check what version of pythia (8.2/8.3) TODO: Should we use the full version number? (it will likely change)
-            base_pythia_version = output_opts.options['pythia'].get('pythia_version')
-            if base_pythia_version == None:
-                print("\n\nNo pythia_version requested, setting to the default (v8.306)")
-                base_pythia_version = "306"
+            base_pythia_version = "312" # Override to a fixed pythia version
             print("Using Pythia version 8.{}".format(base_pythia_version))
         else:
             colliderbit = False
@@ -677,12 +673,10 @@ if args.file:
                            bsm_particle_list, decays)
             print("Creating a diff vs original version of Pythia.")
             # Before writing the backend patch, find and replace couplingsPtr with coupSMPtr in any of the Sigma_ModelName_process.cc files
-            # TODO: Let gum choose between pythia 8.2 and 8.3 (Currently 8.3)
             # Swap out any use of couplingsPtr with coupSMPtr in MadGraph output, needed for Pythia 8.3
-            if (base_pythia_version=="306"):
-              for filename in os.listdir(new_pythia_dir+"/src"):
-                  if os.path.isfile(os.path.join(new_pythia_dir+"/src",filename)) and ('Sigma_'+ gum.name) in filename:
-                      find_and_replace(os.path.join(new_pythia_dir+"/src",filename), ",", " couplingsPtr", " coupSMPtr")
+            for filename in os.listdir(new_pythia_dir+"/src"):
+                if os.path.isfile(os.path.join(new_pythia_dir+"/src",filename)) and ('Sigma_'+ gum.name) in filename:
+                    find_and_replace(os.path.join(new_pythia_dir+"/src",filename), ",", " couplingsPtr", " coupSMPtr")
             
             write_backend_patch(output_dir, pristine_pythia_dir, new_pythia_dir,
                                 "pythia_"+gum.name.lower(),
