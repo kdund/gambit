@@ -137,10 +137,9 @@ namespace Gambit
 
         #pragma omp parallel private(pythia)
         {
-          std::stringstream processLevelOutput;
           try
           {
-            pythia.init(pythia_doc_path, pythiaOptions, &slha, processLevelOutput);
+            pythia.init(pythia_doc_path, pythiaOptions, &slha);
           }
           catch (...)
           {
@@ -149,7 +148,7 @@ namespace Gambit
             pythiaOptions.push_back("Random:seed = " + std::to_string(newSeedBase));
             try
             {
-              pythia.init(pythia_doc_path, pythiaOptions, &slha, processLevelOutput);
+              pythia.init(pythia_doc_path, pythiaOptions, &slha);
             }
             catch (...)
             {
@@ -216,7 +215,7 @@ namespace Gambit
                     // Update global counter
                     nFailedEvents += 1;
                     std::stringstream ss;
-                    pythia_event.list(ss, 1);
+                    pythia_event.list(false, false, 1, ss);
                     logger() << LogTags::debug << "Failed to generate dummy test event in PerformInitialCrossSection_Pythia. Pythia record for the event that failed:\n" << ss.str() << EOM;
                   }
                 }
