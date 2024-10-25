@@ -1212,6 +1212,7 @@ set(lib "libpythia8")
 set(dl "https://pythia.org/download/pythia83/pythia8312.tgz")
 set(md5 "b55f03ebd29cf0339905a6a1476b4b41")
 set(dir "${PROJECT_SOURCE_DIR}/Backends/installed/${name}/${ver}")
+set(ditch_if_absent "hepmc")
 
 # - Add additional compiler-specific optimisation flags and suppress some warnings from -Wextra.
 set(pythia_CXXFLAGS "${BACKEND_CXX_FLAGS}")
@@ -1257,7 +1258,7 @@ set(EXTRA_CONFIG "--with-hepmc3=${HEPMC_PATH}/local")
 set(BOSS_suffix "")
 
 # - Actual configure and compile commands
-check_ditch_status(${name} ${ver} ${dir})
+check_ditch_status(${name} ${ver} ${dir} ${ditch_if_absent})
 if(NOT ditched_${name}_${ver})
   ExternalProject_Add(${name}_${ver}
     DEPENDS castxml
