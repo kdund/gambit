@@ -26,6 +26,8 @@ jobs:
         echo "Set up the build environment"
         mkdir -p BUILD
         cd BUILD
+        # The 'patch' tool is not installed system-wide on Wino, so we have our own installation of it:
+        ln -s /mn/fys-server1/a9/anderkve/tools/patch/bin/patch .
     - name: Configure with cmake
       run: |
         echo "Configure with cmake"
