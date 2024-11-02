@@ -106,8 +106,7 @@ def main(argv):
             print('  gambit/Backends/backend_types/'+h)
 
     # Generate a c++ header containing all the frontend headers we have just harvested.
-    towrite = """
-//   GAMBIT: Global and Modular BSM Inference Tool
+    towrite = """//   GAMBIT: Global and Modular BSM Inference Tool
 //   *********************************************
 ///  \\file                                       
 ///                                               
@@ -149,8 +148,7 @@ def main(argv):
         f.write(towrite)
 
     # Generate a c++ header containing all the frontend headers we have just harvested.
-    towrite = """
-//   GAMBIT: Global and Modular BSM Inference Tool
+    towrite = """//   GAMBIT: Global and Modular BSM Inference Tool
 //   *********************************************
 ///  \\file                                       
 ///                                               

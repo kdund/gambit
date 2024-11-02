@@ -202,9 +202,10 @@ def check_for_declaration(input_snippet, module, all_modules, local_namespace, c
 
 def check_for_namespace(input_snippet, local_namespace):
     """Parse a string to see if it has a namespace declaration"""
-# TODO: This is really limited. E.g. a forward declaration in a small, temporary namespace will get appended to local_namespace,
-# and this function has no way to notice when that namespace ends, so all subsequent types in some different namespace will be
-# screwed up.
+    # TODO: This is really limited. E.g. a forward declaration in a small, temporary namespace will get appended to local_namespace,
+    # and this function has no way to notice when that namespace ends, so all subsequent types in some different namespace will be
+    # screwed up.
+    # 
     # Exit if the line just defines a namespace alias
     if "=" in input_snippet:
         return local_namespace
@@ -724,8 +725,7 @@ def update_only_if_different(existing, candidate, verbose=True):
 
 def make_module_rollcall(rollcall_headers, verbose):
     """Create the module_rollcall header in the Core directory"""
-    towrite = """
-//   GAMBIT: Global and Modular BSM Inference Tool
+    towrite = """//   GAMBIT: Global and Modular BSM Inference Tool
 //   *********************************************
 ///  \\file                                       
 ///                                               

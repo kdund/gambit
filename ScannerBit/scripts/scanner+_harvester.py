@@ -522,8 +522,7 @@ message(\"${{BoldCyan}} X Excluding {0} from ScannerBit configuration.${{ColourR
                                     scanbit_inc_files[plugin[7]][plugin[6]] = inc_files
 
     # Make a candidate priors_rollcall.hpp file
-    towrite = """\
-// GAMBIT: Global and Modular BSM Inference Tool  
+    towrite = """// GAMBIT: Global and Modular BSM Inference Tool  
 //************************************************
 /// \\file                                        
 ///                                               
@@ -567,8 +566,7 @@ message(\"${{BoldCyan}} X Excluding {0} from ScannerBit configuration.${{ColourR
 
     library_names = []
 
-    towrite = """\
-# GAMBIT: Global and Modular BSM Inference Tool
+    towrite = """# GAMBIT: Global and Modular BSM Inference Tool
 #************************************************
 # \\file
 #
@@ -960,8 +958,7 @@ endif()
     if verbose: print("Finished writing ScannerBit/CMakeLists.txt")
 
     # Make a candidate scanbit_reqd_entries.yaml file
-    towrite = """\
-# GAMBIT: Global and Modular BSM Inference Tool  
+    towrite = """# GAMBIT: Global and Modular BSM Inference Tool  
 #************************************************
 # \\file                                         
 #                                                
@@ -1013,8 +1010,7 @@ endif()
     if verbose: print("Finished writing scratch/build_time/scanbit_reqd_entries.yaml")
 
     # Make a candidate scanbit_reqd_entries.yaml file
-    towrite = """\
-# GAMBIT: Global and Modular BSM Inference Tool  
+    towrite = """# GAMBIT: Global and Modular BSM Inference Tool  
 #************************************************
 # \\file                                         
 #                                                
@@ -1059,8 +1055,7 @@ endif()
     if verbose: print("Finished writing scratch/build_time/scanbit_flags.yaml")
 
     # Make a candidate linkedout.cmake file
-    towrite = """\
-# GAMBIT: Global and Modular BSM Inference Tool  
+    towrite = """# GAMBIT: Global and Modular BSM Inference Tool  
 #************************************************
 # \\file                                         
 #                                                

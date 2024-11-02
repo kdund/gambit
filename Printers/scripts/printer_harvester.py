@@ -59,8 +59,7 @@ def main(argv):
     printer_headers.update(retrieve_generic_headers(verbose,"./Printers/include/gambit/Printers/printers","printer",exclude_printers))
 
    # Generate a c++ header containing all the printer headers we have just harvested.
-    towrite = """
-//   GAMBIT: Global and Modular BSM Inference Tool
+    towrite = """//   GAMBIT: Global and Modular BSM Inference Tool
 //   *********************************************
 ///  \\file                                       
 ///                                               

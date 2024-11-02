@@ -132,8 +132,7 @@ def main(argv):
 
 
     # Generate a c++ header containing all the module type headers we have just harvested.
-    towrite = """
-//   GAMBIT: Global and Modular BSM Inference Tool
+    towrite = """//   GAMBIT: Global and Modular BSM Inference Tool
 //   *********************************************
 ///  \\file                                       
 ///                                               
@@ -257,8 +256,7 @@ def main(argv):
             if t != "": print(' ',t)
 
     # Generate a c++ header containing the backend functor template specialisations, using all the backend types we have harvested.
-    towrite = """
-//   GAMBIT: Global and Modular BSM Inference Tool
+    towrite = """//   GAMBIT: Global and Modular BSM Inference Tool
 //   *********************************************
 ///  \\file                                       
 ///                                               
@@ -308,8 +306,7 @@ namespace Gambit
 
 
     # Generate a c++ source file containing the module functor template specialisations, using all the module types we have harvested.
-    towrite = """
-//   GAMBIT: Global and Modular BSM Inference Tool
+    towrite = """//   GAMBIT: Global and Modular BSM Inference Tool
 //   *********************************************
 ///  \\file                                       
 ///                                               
