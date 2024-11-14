@@ -181,6 +181,7 @@ namespace Gambit
             #endif
           }
 
+          result.mean_nEvents                                             = mean_nEvents;
           result.desired_nEvents[collider]                                = calc_N_MC(result.estimator, mean_nEvents);
           result.convergence_options[collider].target_stat                = colOptions.getValue<double>("target_fractional_uncert");
           result.convergence_options[collider].stop_at_sys                = colOptions.getValueOrDef<bool>(true, "halt_when_systematic_dominated");
@@ -194,8 +195,15 @@ namespace Gambit
           // In the case of using the UMVUE estimator, override some options
           if (result.estimator == "UMVUE")
           {
-            // Avoid convergence checks by setting the number of events between checks to be very large
-            stoppingres[collider] = 1000000000;
+            if (fixed_nEvents)
+            {
+              ColliderBit_error().set_fatal(true); // This one must regarded fatal since there is something wrong in the user input
+              ColliderBit_error().raise(LOCAL_INFO,"Options min_nEvents and max_nEvents should not be used for the UMVUE estimator for collider "
+                                                   +collider+". Please correct your YAML file.");
+            }
+          
+            // Avoid convergence checks by setting the number of events higher than are actually generated
+            stoppingres[collider] = result.desired_nEvents[collider]*2;
           }
         }
         first = false;

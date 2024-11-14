@@ -1114,7 +1114,7 @@ namespace Gambit
       std::string collider = Dep::RunMC->current_collider();
       std::map<std::string, xsec_container> xsec_map = *Dep::InitialTotalCrossSection;
       double xsec = xsec_map[collider].xsec();
-      int n_mc = Dep::RunMC->current_event_count();
+      int n_mc = Dep::RunMC->mean_nEvents;
 
       // Call the calc_LHC_LogLikes
       calc_LHC_LogLikes_common(result, use_fulllikes, ana, *runOptions, marginaliser, skip_calc, FileExists, ReadIn, Evaluate, xsec, n_mc);
@@ -1143,7 +1143,7 @@ namespace Gambit
       std::string collider = Dep::RunMC->current_collider();
       std::map<std::string, xsec_container> xsec_map = *Dep::InitialTotalCrossSection;
       double xsec = xsec_map[collider].xsec();
-      int n_mc = Dep::RunMC->current_event_count();
+      int n_mc = Dep::RunMC->mean_nEvents;
 
       // Call the calc_LHC_LogLikes
       calc_LHC_LogLikes_common(result, use_fulllikes, ana, *runOptions, marginaliser, skip_calc, nullptr, nullptr, nullptr, xsec, n_mc);
