@@ -160,7 +160,7 @@ namespace Gambit
         // and background would be necessary if using other estimators
         // n_mc and n_mc_expected are set to zero as they are not used for the MLE estimator
         // sig_unscaled is set to 0 as it is not used in MLE estimator
-        const double loglike_j = calc_poisson_like("MLE", lambda_j, 0, 0.0, n_obss(j), 0, 0);
+        const double loglike_j = calc_poisson_like("MLE", lambda_j, 0.0, 0, n_obss(j), 0, 0);
 
         loglike_tot += loglike_j;
       }
@@ -438,24 +438,14 @@ namespace Gambit
               double combined_loglike = 0;
               for (size_t j = 0; j < nSR; ++j)
               {
-                // @todo This assumes that the weights are all 1. If there are non-zero weights, then the UMVUE estimator should not be used
+                // This assumes that the weights are all 1. If there are non-zero weights, then the UMVUE estimator should not be used.
+                // This is currently enforced as an error message when used with the event weights from cross-section capability.
                 const int signal_unscaled_j = n_preds_unscaled(j);
-
-                // TODO: Chris Chang: Debugging
-                std::cout << "n_bkg_samples(j): " << n_bkg_samples(j) << std::endl;
-                std::cout << "signal_unscaled_j: " << signal_unscaled_j << std::endl;
-                std::cout << "n_obss(j): " << n_obss(j) << std::endl;
-                std::cout << "n_mc: " << n_mc << std::endl;
-                std::cout << "n_mc_expected: " << n_mc_expected << std::endl;
-                 
+                double bkg = std::max(n_bkg_samples(j), 1e-3); //< manually avoid <= 0 rates
 
                 // Since signal is unused for UMVUE estimator, setting to 0.0
-                const double loglike_j = calc_poisson_like(poisson_estimator, 0.0, n_bkg_samples(j), signal_unscaled_j, n_obss(j), n_mc, n_mc_expected);
+                const double loglike_j = calc_poisson_like(poisson_estimator, 0.0, bkg, signal_unscaled_j, n_obss(j), n_mc, n_mc_expected);
                 combined_loglike += loglike_j;
-                
-                std::cout << "loglike_j: " << loglike_j << std::endl;// TODO: Chris Chang: Debugging
-                exit(0);// TODO: Chris Chang: Debugging
-                
               }
               // Add combined likelihood to running sums (to later calculate averages)
               lsum_private += exp(combined_loglike);
@@ -493,7 +483,7 @@ namespace Gambit
                 const double signal_j = lambda_j - n_bkg(j);
               
                 // Since unscaled signal is not currently used for in this case, setting to 0
-                const double loglike_j = calc_poisson_like(poisson_estimator, signal_j, 0, n_bkg(j), n_obss(j), n_mc, n_mc_expected);
+                const double loglike_j = calc_poisson_like(poisson_estimator, signal_j, n_bkg(j), 0, n_obss(j), n_mc, n_mc_expected);
                 combined_loglike += loglike_j;
               }
               // Add combined likelihood to running sums (to later calculate averages)
@@ -723,7 +713,6 @@ namespace Gambit
         const double ll_b = marg_prof_fn(runOptions, n_pred_b, n_pred_b, zero_array, n_obs, sqrtEb, sqrtEb, Vb, Vb, marginaliser, n_mc, n_mc_expected);
         const double ll_sb = marg_prof_fn(runOptions, n_pred_sb, n_pred_b, n_pred_s_unscaled, n_obs, sqrtEsb, sqrtEb, Vsb, Vb, marginaliser, n_mc, n_mc_expected);
         dll = ll_sb - ll_b;
-        std::cout << "HEY CHRIS. dll: " << dll << std::endl;// TODO: Chris Chang: Debugging
 
         // Write result to the ana_loglikes reference
         ana_loglikes.combination_sr_label = "all";
@@ -820,17 +809,6 @@ namespace Gambit
           const double dll_exp = ll_sb_exp - ll_b_exp;
           const double dll_obs = ll_sb_obs - ll_b_obs;
           
-          std::cout << "dll_obs: " << dll_obs << std::endl; // TODO: Debugging Chris Chang
-          std::cout << "ll_b_obs: " << ll_b_obs << std::endl; // TODO: Debugging Chris Chang
-          std::cout << "ll_sb_obs: " << ll_sb_obs << std::endl; // TODO: Debugging Chris Chang
-          std::cout << "n_preds_s_unscaled(0): " << n_preds_s_unscaled(0) << std::endl; // TODO: Debugging Chris Chang
-          std::cout << "n_preds_sb(0): " << n_preds_sb(0) << std::endl; // TODO: Debugging Chris Chang
-          std::cout << "n_preds_b(0): " << n_preds_b(0) << std::endl; // TODO: Debugging Chris Chang
-          std::cout << "zero_array(0): " << zero_array(0) << std::endl; // TODO: Debugging Chris Chang
-          std::cout << "n_obss(0): " << n_obss(0) << std::endl; // TODO: Debugging Chris Chang
-          std::cout << "sqrtevals_b(0): " << sqrtevals_b(0) << std::endl; // TODO: Debugging Chris Chang
-          std::cout << "sqrtevals_sb(0): " << sqrtevals_sb(0) << std::endl; // TODO: Debugging Chris Chang
-
           // Check for problems
           if (Utils::isnan(ll_b_exp))
           {

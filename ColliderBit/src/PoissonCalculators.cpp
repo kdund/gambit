@@ -110,7 +110,7 @@ namespace Gambit
 
         const double ln_norm = o * std::log(b) - b - log_factorial(o);
         const double norm = std::exp(ln_norm);
-
+        
         return norm * std::pow(1. - f, k) * sum;
       }
 
