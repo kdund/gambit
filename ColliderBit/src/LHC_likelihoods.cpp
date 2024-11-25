@@ -722,7 +722,7 @@ namespace Gambit
 
         // Compute the single, correlated analysis-level DLL as the difference of s+b and b (partial) LLs
         /// @todo Only compute this once per run
-        const double ll_b = marg_prof_fn(runOptions, n_pred_b, n_pred_b, zero_array, n_obs, sqrtEb, sqrtEb, Vb, Vb, marginaliser, n_mc, n_mc_expected);
+        const double ll_b  = marg_prof_fn(runOptions, n_pred_b,  n_pred_b, zero_array,        n_obs, sqrtEb,  sqrtEb, Vb,  Vb, marginaliser, n_mc, n_mc_expected);
         const double ll_sb = marg_prof_fn(runOptions, n_pred_sb, n_pred_b, n_pred_s_unscaled, n_obs, sqrtEsb, sqrtEb, Vsb, Vb, marginaliser, n_mc, n_mc_expected);
         dll = ll_sb - ll_b;
 
