@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
       exit(1);
     }
     std::string filename = argv[1];
-    std::string outname_data = "Neutrino_standalone_RHN.out";
+    std::string outname_data = "NeutrinoBit_standalone_RHN.out";
     if (argc >= 3) outname_data = argv[3];
 
     // ---- Initialise logging and exceptions ----
