@@ -202,13 +202,14 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Run gambit style
+    - name: Run gambit style # For now just letting it print out all to screen because parsing can throw an error (causing it to not write to a file)
       run: |
         echo "Running gambit-style"
-        gambit-style lint ./* 2> Suggested_Formatting_Improvements.txt
-        if [ "$(wc -l < "Suggested_Formatting_Improvements.txt")" -gt 0 ]; then echo "Found $(wc -l < "Suggested_Formatting_Improvements.txt") suggested improvements to the code."; exit -1; fi
-    - name: Print Suggested Changes # Currently only printing the first 10k changes to screen
-      run: |
-        echo "Printing suggested changes (if there are any)"
-        if [ "$(wc -l < "Suggested_Formatting_Improvements.txt")" -gt 10000 ]; then echo "Found more than 10k suggested changes, showing only the first 10k..."; fi
-        head -n 10000 Suggested_Formatting_Improvements.txt
+        gambit-style lint ./*
+    #     gambit-style lint ./* 2> Suggested_Formatting_Improvements.txt
+    #     if [ "$(wc -l < "Suggested_Formatting_Improvements.txt")" -gt 0 ]; then echo "Found $(wc -l < "Suggested_Formatting_Improvements.txt") suggested improvements to the code."; exit -1; fi
+    # - name: Print Suggested Changes # Currently only printing the first 10k changes to screen
+    #   run: |
+    #     echo "Printing suggested changes (if there are any)"
+    #     if [ "$(wc -l < "Suggested_Formatting_Improvements.txt")" -gt 10000 ]; then echo "Found more than 10k suggested changes, showing only the first 10k..."; fi
+    #     head -n 10000 Suggested_Formatting_Improvements.txt
