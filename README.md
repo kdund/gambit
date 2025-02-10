@@ -39,6 +39,15 @@ Documentation
 
 Please the [manual](https://arxiv.org/abs/1705.07908) for the main documentation on the design and use of the GAMBIT Core and modules. Further details on the code are available [here](https://gambitbsm.org/).
 
+Tooling
+--
+
+We maintain
+
+- [gambit-test](https://github.com/GambitBSM/gambit-test) for testing GAMBIT
+- [gambit-style](https://github.com/GambitBSM/gambit-style) for formatting the GAMBIT codebase
+- [gambit-plot](https://github.com/GambitBSM/gambit-plot) for analyzing and plotting GAMBIT results
+
 Supported compilers and dependencies
 --
 
