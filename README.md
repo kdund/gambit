@@ -32,7 +32,7 @@ cmake ..
 make -j4 gambit
 gambit -f yaml_files/spartan.yaml
 ```
-Check out the [Tutorials](https://gambitbsm.org/documentation/tutorials/the_gambit_interface/) for more examples.
+Check out the [tutorials](https://gambitbsm.org/documentation/tutorials/the_gambit_interface/) for more examples.
 
 Documentation
 --
@@ -43,10 +43,10 @@ Tooling
 --
 
 We maintain
-
-- [gambit-test](https://github.com/GambitBSM/gambit-test) for testing GAMBIT using [BATS](https://bats-core.readthedocs.io/)
+- [gambit-light](https://github.com/GambitBSM/gambit_light_1.0), a light-weight GAMBIT without any built-in physics computations, intended as a general fitting/optimisation package
+- [gambit-plot](https://github.com/GambitBSM/gambit_plotting_tools) for analyzing and plotting GAMBIT results using `matplotlib`
 - [gambit-style](https://github.com/GambitBSM/gambit-style) for formatting the GAMBIT codebase using e.g., `clang-format` and `clang-tidy`
-- [gambit-plot](https://github.com/GambitBSM/gambit-plot) for analyzing and plotting GAMBIT results in `matplotlib`
+- [gambit-test](https://github.com/GambitBSM/gambit-test) for testing GAMBIT using [BATS](https://bats-core.readthedocs.io/)
 - [TWalkReader](https://github.com/GambitBSM/TWalkReader/) for reading TWalk MCMC results into [ArViZ](https://python.arviz.org/en/stable/)
 
 Supported compilers and dependencies
@@ -116,7 +116,7 @@ More information about the GAMBIT CMake system is provided in the Core paper. Co
 
 Assuming that you have retrieved the git repository or the tarball and unpacked it:
 
-```
+```bash
   cd gambit
   mkdir build
   cd build
@@ -127,17 +127,17 @@ Assuming that you have retrieved the git repository or the tarball and unpacked 
 ```
 
 To build all backend codes:
-```
+```bash
   make -jn backends
 ```
 
 If you don't want to wait for all backends to build, or if one fails to compile on your system for whatever reason, you can also build individual backends using:
-```
+```bash
   make -jn <backend name>
 ```
 
 and clean them with:
-```
+```bash
   make clean-<backend name>
 ```
 
@@ -148,18 +148,18 @@ For complete documentation on running GAMBIT, please see the Core and module pap
 
 To see which backends and scanners have been installed correctly, do:
 
-```
+```bash
   gambit backends
   gambit scanners
 ```
 
 To run the GAMBIT spartan example, do
-```
+```bash
   gambit -f yaml_files/spartan.yaml
 ```
 
 To run an example GAMBIT MSSM7 scan, do:
-```
+```bash
   gambit -f yaml_files/MSSM7.yaml
 ```
 
@@ -168,15 +168,15 @@ Other examples are provided in the yaml_files folder.  Further readmes and docum
 Running GUM
 --
 
-For a detailed description on how to use GUM please see the GUM paper (reference above). To run the simple model described in the tutorial, the MDMSM, do:
+For a detailed description on how to use GUM please see the [GUM paper](https://arxiv.org/abs/2107.00030) (reference below). To run the simple model described in the tutorial, the MDMSM, do:
 
-```
+```bash
   gum -f Tutorial/MDMSM.gum
 ```
 
 To revert the changes to the GAMBIT code brought upon by GUM run GUM in revert mode:
 
-```
+```bash
   gum -r mug_files/MDMSM.mug
 ```
 
@@ -196,7 +196,7 @@ Please cite the following GAMBIT papers, depending on your use of different modu
  - GAMBIT Dark Matter Workgroup: T. Bringmann, et al., **DarkBit**: A GAMBIT module for computing dark matter observables and likelihoods, Eur. Phys. J. C 77 (2017) 831, arXiv:1705.07920
  - **NeutrinoBit**: M. Chrzaszcz, M. Drewes, T. Gonzalo, J. Harz, S. Krishnamurthy, C. Weniger, A frequentist analysis of three right-handed neutrinos with GAMBIT, Eur. Phys. J. C 80 (2020) 569, arXiv:1908.02302
  - GAMBIT Cosmology Workgroup: J. J. Renk, et al., **CosmoBit**: A GAMBIT module for computing cosmological observables and likelihoods, JCAP 02 (2021) 022, arXiv:2009.03286
- - **GUM**: S. Bloor, T. Gonzalo, P. Scott, C. Chang, A. Raklev, J-E. Camargo-Molina, A. Kvellestad, J. Renk, P. Athron, C. Balázs, The GAMBIT Universal Model Machine: from Lagrangians to Likelihoods, arXiv:2107.00030.
+ - **GUM**: S. Bloor, T. Gonzalo, P. Scott, C. Chang, A. Raklev, J-E. Camargo-Molina, A. Kvellestad, J. Renk, P. Athron, C. Balázs, The GAMBIT Universal Model Machine: from Lagrangians to Likelihoods, Eur. Phys. J. C 81 (2021) 1103, arXiv:2107.00030.
 
 GAMBIT contains interfaces to various external codes, along with scripts for downloading and configuring them. Please cite as appropriate if you use those codes:
 
