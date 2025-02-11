@@ -48,8 +48,11 @@ BE_NAMESPACE
     }
     catch (...)
     {
-      invalid_point().raise(LOCAL_INFO, "ATLAS FullLikes has failed on this point (perhaps in the scipy optimise).");
+      invalid_point().raise("ATLAS FullLikes has failed on this point (perhaps in the scipy optimise).");
     }
+
+    // Squash a warning about no return
+    return 0.0;
   }
 #else
   double FullLikes_Evaluate(std::map<str,double>& SRsignal, const str& ana_name)
