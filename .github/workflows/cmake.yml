@@ -7,7 +7,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  compulsory:
+  compulsory-deps:
 
     runs-on: ubuntu-latest
 
@@ -18,6 +18,35 @@ jobs:
         packages: build-essential gfortran cmake git python-yaml libboost-all-dev libgsl-dev libeigen3-dev liblapack-dev pkg-config
         version: default
       
+    - name: Run cmake
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+
+    - name: Run cmake with warnings as errors
+      run: |
+        mkdir build_cmake_errors
+        cd build_cmake_errors
+        cmake -Werror=dev ..
+
+  add-optional-deps:
+  
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: build-essential gfortran cmake git python-yaml libboost-all-dev libgsl-dev libeigen3-dev liblapack-dev pkg-config libhdf5-dev libopenmpi-dev axel graphviz libx11-dev 
+        version: default
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'pip' 
+        
+    - run: pip install -r optional.txt
+
     - name: Run cmake
       run: |
         mkdir build
