@@ -51,7 +51,7 @@ jobs:
     - name: Install debian deps
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential gfortran cmake git python3-yaml libboost-all-dev libgsl-dev libeigen3-dev liblapack-dev pkg-config libhdf5-dev libopenmpi-dev axel graphviz libx11-dev 
+        sudo apt-get install -y build-essential gfortran cmake git python3-yaml libboost-all-dev libgsl-dev libeigen3-dev liblapack-dev pkg-config libhdf5-dev libopenmpi-dev axel graphviz libx11-dev uuid-dev 
 
     - name: Run cmake
       run: |
