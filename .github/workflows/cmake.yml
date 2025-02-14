@@ -13,11 +13,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: awalsh128/cache-apt-pkgs-action@latest
-      with:
-        packages: build-essential gfortran cmake git python-yaml libboost-all-dev libgsl-dev libeigen3-dev liblapack-dev pkg-config
-        version: default
-      
+
+    - name: Install debian deps
+      run: sudo apt install build-essential gfortran cmake git python-yaml libboost-all-dev libgsl-dev libeigen3-dev liblapack-dev pkg-config
+
     - name: Run cmake
       run: |
         mkdir build
@@ -35,18 +34,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    
     - uses: actions/checkout@v4
-    - uses: awalsh128/cache-apt-pkgs-action@latest
-      with:
-        packages: build-essential gfortran cmake git python-yaml libboost-all-dev libgsl-dev libeigen3-dev liblapack-dev pkg-config libhdf5-dev libopenmpi-dev axel graphviz libx11-dev 
-        version: default
+
     - uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         cache: 'pip'
         cache-dependency-path: optional.txt
-        
-    - run: pip install -r optional.txt
+
+    - name: Install pip deps
+      run: pip install -r optional.txt
+
+    - name: Install debian deps
+      run: sudo apt install build-essential gfortran cmake git python-yaml libboost-all-dev libgsl-dev libeigen3-dev liblapack-dev pkg-config libhdf5-dev libopenmpi-dev axel graphviz libx11-dev 
 
     - name: Run cmake
       run: |
