@@ -5,7 +5,7 @@ emcee
 h5py
 nautilus
 nessai
-pocomo
+pocomc
 scipy
 ultranest
 zeus-mcmc
