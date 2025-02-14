@@ -45,13 +45,13 @@ jobs:
         cache: 'pip'
         cache-dependency-path: optional.txt
 
-    - name: Install pip deps
-      run: pip install -r optional.txt
-
     - name: Install debian deps
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential gfortran cmake git python3-yaml libboost-all-dev libgsl-dev libeigen3-dev liblapack-dev pkg-config libhdf5-dev libopenmpi-dev axel graphviz libx11-dev uuid-dev 
+
+    - name: Install pip deps
+      run: pip install -r optional.txt
 
     - name: Run cmake
       run: |
