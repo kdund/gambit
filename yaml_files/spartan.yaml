@@ -347,6 +347,26 @@ Scanner:
         min_num_live_points: 1000
         dlogz: 0.5
 
+    binmin_bottomup:
+      like: LogLike
+      plugin: binmin_bottomup
+      run:
+        n_bins:
+          NormalDist::mu: 40
+          NormalDist::sigma: 40
+        sampler: "latinhypercube"
+        optimizer: "minimize"
+        sampled_parameters: ["NormalDist::mu", "NormalDist::sigma"]
+        optimized_parameters: []
+        n_initial_points: 10
+        n_sampler_points_per_bin: 10
+        inherit_best_init_point_within_bin: False
+        optima_comparison_rtol: 1e-6
+        optima_comparison_atol: 1e-4
+        n_restarts_per_bin: 1
+        n_tasks_per_batch: 1
+
+
 ObsLikes:
 
   - purpose:      LogLike
