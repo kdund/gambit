@@ -29,7 +29,7 @@ YAML options:
   run:
     n_bins:                       Number of bins for each parameter, given as a list on the form "model::parameter: <number of bins>".
     sampled_parameters:           List of the parameters that should be sampled within each bin, e.g ["model::par_1", "model::par_2"]. 
-    optimized_parameters:         List of the parameters that should be sampled within each bin, e.g ["model::par_3", "model::par_4"]. 
+    optimized_parameters:         List of the parameters that should be optimized within each bin, e.g ["model::par_3", "model::par_4"]. 
     sampler:                      Choice of sampler for sampling parameters within each bin.
     optimizer                     Choice of optimizer for initial global optimization and optimizing parameters within each bin.
     optimizer_kwargs:             Keyword arguments to be forwarded to the optimzer.
