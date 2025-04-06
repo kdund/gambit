@@ -17,34 +17,34 @@ except:
 import scanner_plugin as splug
 
 
-
 class BinMinBottomUp(splug.scanner):
-"""
+    """
 Sampling and optimization based on the "bottom-up" mode of binminpy, where the
 parameter space is binned by working outwards from all identified local optima.
 
 See https://github.com/anderkve/binminpy
 
 YAML options:
-  like:           Use the functors thats corresponds to the specified purpose.
+  like:                           Use the functors that correspond to the specified purpose.
   run:
-    n_bins:               Number of bins for each parameter, given as a list on the form "model::parameter: <number of bins>" 
-    sampled_parameters:   List of the parameters that should be sampled within each bin, e.g ["model::par_1", "model::par_2"] 
-    optimized_parameters: List of the parameters that should be sampled within each bin, e.g ["model::par_3", "model::par_4"] 
-    sampler:              Choice of sampler for sampling parameters within each bin
-    optimizer             Choice of optimizer for optimizing parameters within each bin
-    optimizer_kwargs:     Keyword arguments to be forwarded to the optimzer
-    n_initial_points:     Number of starting points for the initial search for local optima
-    n_sampler_points_per_bin:     Number of sampled points within each bin
-    accept_loglike_above:         Only add neighbouring bins for bins that have a highest loglike above this threshold
-    accept_delta_loglike_above:   Only add neighbouring bins for delta loglike (difference to best-fit point) is within this threshold
-    contour_guide:        Settings to only allow bins that include points with loglike value close to a chosen value, for tracing loglike contours
-      loglike_contour_central_value:    Loglike contour value
-      loglike_contour_width:            Spread around loglike contour value
-    inherit_best_init_point_within_bin:  When optimizing parameters, start optimization from the current best point within the given bin
-    n_optim_restarts_per_bin:     Number of repeated attempts at optimizing parameters per bin
-    n_tasks_per_batch:            Number of tasks (bins) assigned to each MPI worker process at a time
-    print_progress_every_n_batch:   How frequently the progress message is printed
+    n_bins:                       Number of bins for each parameter, given as a list on the form "model::parameter: <number of bins>".
+    sampled_parameters:           List of the parameters that should be sampled within each bin, e.g ["model::par_1", "model::par_2"]. 
+    optimized_parameters:         List of the parameters that should be sampled within each bin, e.g ["model::par_3", "model::par_4"]. 
+    sampler:                      Choice of sampler for sampling parameters within each bin.
+    optimizer                     Choice of optimizer for initial global optimization and optimizing parameters within each bin.
+    optimizer_kwargs:             Keyword arguments to be forwarded to the optimzer.
+    n_initial_points:             Number of starting points for the initial search for local optima.
+    n_sampler_points_per_bin:     Number of sampled points within each bin.
+    accept_loglike_above:         Only add neighboring bins for bins that have a highest loglike above this threshold.
+    accept_delta_loglike_above:   Only add neighboring bins for delta loglike (difference to best-fit point) is within this threshold.
+    contour_guide:                Settings to only allow bins that include points with loglike value close to a chosen value, for tracing loglike contours.
+      loglike_contour_central_value:  Loglike contour value.
+      loglike_contour_width:          Spread around loglike contour value.
+    neighborhood_distance:        If the current bin is accepted, how many bins in each direction should be added to the list of tasks.
+    inherit_best_init_point_within_bin:   When optimizing parameters, start optimization from the current best point within the given bin.
+    n_optim_restarts_per_bin:     Number of repeated attempts at optimizing parameters per bin.
+    n_tasks_per_batch:            Number of tasks (bins) assigned to each MPI worker process at a time.
+    print_progress_every_n_batch: How frequently the progress message is printed.
 """
 
     __version__ = binminpy_version
@@ -157,6 +157,7 @@ YAML options:
             return_bin_centers=False,
             optima_comparison_rtol=self.run_args.get("optima_comparison_rtol", 1e-9),
             optima_comparison_atol=self.run_args.get("optima_comparison_atol", 0.0),
+            neighborhood_distance=self.run_args.get("neighborhood_distance", 1),
             n_optim_restarts_per_bin=self.run_args.get("n_optim_restarts_per_bin", 1),
             n_tasks_per_batch=self.run_args.get("n_tasks_per_batch", 10),
             print_progress_every_n_batch=self.run_args.get("print_progress_every_n_batch", 1000),
