@@ -49,10 +49,10 @@ YAML options:
 
 
     def __init__(self, **kwargs):
-        # if not with_mpi:
-        #     raise Exception(f"GAMBIT has been compiled with MPI disabled (WITH_MPI=0), but the "
-        #                     f"binminpy scanner requires MPI parallelisation with >1 MPI processes. "
-        #                     f"Rerun CMake with \"cmake -DWITH_MPI=1\" and then recompile GAMBIT.")
+        if not with_mpi:
+            raise Exception(f"GAMBIT has been compiled with MPI disabled (WITH_MPI=0), but the "
+                            f"binminpy scanner requires MPI parallelisation with >1 MPI processes. "
+                            f"Rerun CMake with \"cmake -DWITH_MPI=1\" and then recompile GAMBIT.")
 
         super().__init__(use_mpi=True, use_resume=False)
 
